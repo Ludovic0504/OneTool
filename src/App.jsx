@@ -1,34 +1,41 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import Header from "./components/Header.jsx";
-import Login from "./pages/Login.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import Sidebar from "./components/Sidebar.jsx";
-// (d'autres pages si besoin)
-import Prompt from "./pages/Prompt.jsx";
-import Video from "./pages/Video.jsx";
-import Image from "./pages/Image.jsx";
-import Asavoir from "./pages/Asavoir.jsx";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import Dashboard from "./pages/Dashboard";
+import Prompt from "./pages/Prompt";
+import Image from "./pages/Image";
+import Video from "./pages/Video";
+import ASavoir from "./pages/ASavoir.jsx";
 
-export default function App() {
+function AppLayout() {
   return (
-    <div className="min-h-screen flex">
+    <div className="flex h-screen bg-gray-100">
       <Sidebar />
-
-      {/* Zone principale (header + pages) */}
       <div className="flex-1 flex flex-col">
         <Header />
-        <main className="p-6">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/prompt" element={<Prompt />} />
-            <Route path="/video" element={<Video />} />
-            <Route path="/image" element={<Image />} />
-            <Route path="/asavoir" element={<Asavoir />} />
-            <Route path="/" element={<Navigate to="/Accueil" replace />} />
-          </Routes>
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/prompt" element={<Prompt />} />
+        <Route path="/image" element={<Image />} />
+        <Route path="/video" element={<Video />} />
+        <Route path="/a-savoir" element={<ASavoir />} />
+
+      </Route>
+
+      {/* Route fallback si URL non reconnue */}
+      <Route path="*" element={<Dashboard />} />
+    </Routes>
   );
 }
