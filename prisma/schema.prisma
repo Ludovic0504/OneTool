@@ -1,0 +1,73 @@
+// ---------- DATASOURCE & GENERATOR ----------
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------- MODELS ----------
+model User {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  name         String?          
+  passwordHash String
+  prompts      Prompt[]
+  images       Image[]
+  createdAt    DateTime          @default(now())
+  workspaces   WorkspaceMember[]
+}
+
+model Workspace {
+  id        String            @id @default(cuid())
+  name      String
+  createdAt DateTime          @default(now())
+  members   WorkspaceMember[]
+  // Exemple d’entité "Item" générique type couteau suisse
+  items     Item[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  role        String // "owner" | "admin" | "member"
+  userId      String
+  workspaceId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+model Item {
+  id          String    @id @default(cuid())
+  workspaceId String
+  title       String
+  type        String // "note" | "task" | "link" | "file" | ...
+  data        Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, type])
+}
+
+model Prompt {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// Optionnel si tu veux stocker des médias
+model Image {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
