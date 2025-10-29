@@ -5,7 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Prompt from "./pages/Prompt";
 import Image from "./pages/Image";
 import Video from "./pages/Video";
-import ASavoir from "./pages/ASavoir.jsx";
+import ASavoir from "./pages/Asavoir.jsx";
 
 function AppLayout() {
   return (
