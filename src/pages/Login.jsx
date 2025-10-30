@@ -1,55 +1,58 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { supabase } from '../supabase/client';
-import { useSession } from '../supabase/useSession';
-import LoadingScreen from '../components/LoadingScreen';
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { supabase } from '../supabase/client'
+import FullScreenLoader from '../components/FullScreenLoader'
+import { useAuth } from '../context/AuthProvider'
 
 function getSafeNext(raw) {
-  // par défaut
-  let n = typeof raw === 'string' && raw.startsWith('/') ? raw : '/dashboard';
+  let n = typeof raw === 'string' && raw.startsWith('/') ? raw : '/dashboard'
   // empêche les boucles vers /login
-  if (n === '/login' || n.startsWith('/login?')) n = '/dashboard';
-  return n;
+  if (n === '/login' || n.startsWith('/login')) n = '/dashboard'
+  return n
 }
 
 export default function Login() {
-  const { session, loading } = useSession();
-  const [sp] = useSearchParams();
-  const next = useMemo(() => getSafeNext(sp.get('next')), [sp]);
-  const navigate = useNavigate();
+  const { session, loading } = useAuth()  // ⬅️ nouveau
+  const [sp] = useSearchParams()
+  const next = useMemo(() => getSafeNext(sp.get('next')), [sp])
+  const navigate = useNavigate()
 
   useEffect(() => {
-    if (!loading && session) navigate(next, { replace: true });
-  }, [loading, session, next, navigate]);
+    if (!loading && session) navigate(next, { replace: true })
+  }, [loading, session, next, navigate])
 
-  const [email, setEmail] = useState(() => sp.get('email') || '');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [err, setErr] = useState('');
-  const [info, setInfo] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [email, setEmail] = useState(sp.get('email') || '')
+  const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
+  const [err, setErr] = useState('')
+  const [info, setInfo] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  if (loading) return <LoadingScreen label="Ouverture de la page de connexion…" />;
+if (loading) return <FullScreenLoader label="Ouverture de la page de connexion…" />
 
   async function onSubmit(e) {
-    e.preventDefault();
-    setErr(''); setInfo(''); setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setSubmitting(false);
-    if (error) return setErr(error.message);
-    navigate(next, { replace: true });
+    e.preventDefault()
+    setErr(''); setInfo('')
+    setSubmitting(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setSubmitting(false)
+    if (error) return setErr(error.message)
+    navigate(next, { replace: true })
   }
 
   async function sendMagicLink() {
-    setErr(''); setInfo(''); setSubmitting(true);
+    setErr(''); setInfo(''); setSubmitting(true)
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}${next}` }
-    });
-    setSubmitting(false);
-    if (error) return setErr(error.message);
-    setInfo('Lien envoyé ! Vérifie ta boîte mail.');
+    })
+    setSubmitting(false)
+    if (error) return setErr(error.message)
+    setInfo('Lien envoyé ! Vérifie ta boîte mail.')
   }
+
+  // … garde ton JSX (formulaire) identique en dessous
+
 
   return (
     <main className="min-h-dvh grid place-items-center bg-gradient-to-b from-gray-50 to-white px-4">

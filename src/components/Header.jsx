@@ -1,22 +1,41 @@
-import { Link } from 'react-router-dom';
-import { useSession } from '../supabase/useSession';
-import LogoutButton from './LogoutButton';
+import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthProvider'
+import LogoutButton from './LogoutButton'
 
 export default function Header() {
-  const { session, loading } = useSession();
+  const { session, loading } = useAuth()
+
+  // ✅ 1. Si la session est en cours de chargement, on garde le layout stable (placeholder)
+  if (loading) {
+    return (
+      <header className="flex items-center justify-between p-4">
+        <h1 className="text-xl font-semibold">
+          <Link to="/dashboard">OneTool</Link>
+        </h1>
+        <div className="h-5 w-28 rounded bg-gray-200" />
+      </header>
+    )
+  }
+
+  const email = session?.user?.email
 
   return (
     <header className="flex items-center justify-between p-4">
-      <h1 className="text-xl font-semibold">OneTool</h1>
+      {/* ✅ 2. Le titre renvoie vers /dashboard */}
+      <h1 className="text-xl font-semibold">
+        <Link to="/dashboard">OneTool</Link>
+      </h1>
 
-      {loading ? null : session ? (
+      {email ? (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">{session.user?.email}</span>
+          <span className="text-sm text-gray-600">{email}</span>
           <LogoutButton />
         </div>
       ) : (
-        <Link to="/login" className="text-sm underline">Se connecter</Link>
+        <Link to="/login" className="text-sm underline">
+          Se connecter
+        </Link>
       )}
     </header>
-  );
+  )
 }

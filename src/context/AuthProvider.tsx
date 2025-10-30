@@ -1,13 +1,21 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import FullScreenLoader from '@/components/FullScreenLoader'
+import { supabase } from '../supabase/client'
+// si tu as @supabase/supabase-js en types, décommente :
+// import type { Session, User } from '@supabase/supabase-js'
 
 type AuthContextType = {
-  session: any | null
-  user: any | null
+  session: any | null // Session | null
+  user: any | null    // User | null
+  loading: boolean
 }
-const AuthContext = createContext<AuthContextType>({ session: null, user: null })
+
+const AuthContext = createContext<AuthContextType>({
+  session: null,
+  user: null,
+  loading: true,
+})
+
 export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -15,28 +23,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any | null>(null)
 
   useEffect(() => {
-    let ignore = false
+    let mounted = true
 
+    // 1) lecture initiale
     supabase.auth.getSession().then(({ data }) => {
-      if (!ignore) {
-        setSession(data.session)
-        setLoading(false)
-      }
-    })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess)
+      if (!mounted) return
+      setSession(data.session ?? null)
+      setLoading(false)
     })
 
+    // 2) écoute des changements
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess ?? null)
+    })
+
+    // cleanup
     return () => {
-      ignore = true
+      mounted = false
       sub.subscription.unsubscribe()
     }
   }, [])
 
-  if (loading) return <FullScreenLoader />
-
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading }}>
       {children}
     </AuthContext.Provider>
   )
