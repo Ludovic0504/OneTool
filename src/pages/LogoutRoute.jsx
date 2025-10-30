@@ -8,10 +8,11 @@ export default function LogoutRoute() {
   useEffect(() => {
     (async () => {
       try {
-        await supabase.auth.signOut()
+        await supabase.auth.signOut({ scope: 'local' });
       } catch (e) {
         console.error('Erreur signOut :', e)
       } finally {
+        await new Promise((r) => setTimeout(r, 50));
         navigate('/login', { replace: true })
       }
     })()

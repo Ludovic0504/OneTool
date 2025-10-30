@@ -18,7 +18,8 @@ export default function Login() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!loading && session) navigate(next, { replace: true })
+    if (loading) return;
+    if (session) navigate(next, { replace: true });
   }, [loading, session, next, navigate])
 
   const [email, setEmail] = useState(sp.get('email') || '')

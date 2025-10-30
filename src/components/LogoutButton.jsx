@@ -7,11 +7,12 @@ export default function LogoutButton() {
   const { loading } = useAuth() // optionnel
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' });
     if (error) {
       console.error('Erreur lors de la déconnexion :', error.message)
       return
     }
+    await new Promise((r) => setTimeout(r, 50));
     navigate('/login', { replace: true })
   }
 
