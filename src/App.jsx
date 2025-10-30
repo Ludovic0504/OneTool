@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
@@ -27,24 +26,25 @@ function AppLayout() {
 export default function App() {
   return (
     <Routes>
-      {/* index -> dashboard */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+  {/* index -> dashboard */}
+  <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-      {/* login public, hors layout */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/logout" element={<LogoutRoute />} />
+  {/* pages publiques hors layout */}
+  <Route path="/login" element={<Login />} />
+  <Route path="/logout" element={<LogoutRoute />} />
 
-      {/* privé sous layout */}
-      <Route element={<AppLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/prompt" element={<ProtectedRoute><Prompt /></ProtectedRoute>} />
-        <Route path="/image" element={<ProtectedRoute><ImagePage /></ProtectedRoute>} />
-        <Route path="/video" element={<ProtectedRoute><VideoPage /></ProtectedRoute>} />
-        <Route path="/a-savoir" element={<ProtectedRoute><Asavoir /></ProtectedRoute>} />
-      </Route>
+  {/* pages sous layout (publiques) */}
+  <Route element={<AppLayout />}>
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/prompt"    element={<Prompt />} />
+    <Route path="/image"     element={<ImagePage />} />
+    <Route path="/video"     element={<VideoPage />} />
+    <Route path="/a-savoir"  element={<Asavoir />} />
+  </Route>
 
-      {/* wildcard à la fin uniquement */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+  {/* wildcard en dernier */}
+  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+</Routes>
+
   );
 }
