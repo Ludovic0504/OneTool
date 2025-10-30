@@ -1,11 +1,27 @@
+// src/pages/Dashboard.jsx
+import { useAuth } from '../context/AuthProvider';
+import { Link } from 'react-router-dom';
+
 export default function Dashboard() {
-    console.log("Render Dashboard");
+  const { session } = useAuth();
+
+  if (!session) {
     return (
+      <div className="p-6">
+        <h2 className="text-xl font-semibold">Bienvenue sur OneTool 🎉</h2>
+        <p className="mt-2 text-gray-600">Tu n’es pas connecté.</p>
+        <Link to="/login" className="mt-4 inline-block underline">
+          Se connecter
+        </Link>
+      </div>
+    );
+  }
+
+  // contenu “connecté”
+  return (
     <div className="p-6">
-        <h2 className="text-2xl font-bold text-gray-800">Bienvenue sur OneTool 🎉</h2>
-        <p className="mt-2 text-gray-600">
-        Voici ton espace de gestion centralisé.
-        </p>
+      <h2 className="text-xl font-semibold">Ton dashboard</h2>
+      {/* … ton contenu authentifié … */}
     </div>
   );
 }

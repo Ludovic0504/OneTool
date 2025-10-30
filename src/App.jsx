@@ -36,7 +36,7 @@ export default function App() {
 
       {/* privé sous layout */}
       <Route element={<AppLayout />}>
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/prompt" element={<ProtectedRoute><Prompt /></ProtectedRoute>} />
         <Route path="/image" element={<ProtectedRoute><ImagePage /></ProtectedRoute>} />
         <Route path="/video" element={<ProtectedRoute><VideoPage /></ProtectedRoute>} />
