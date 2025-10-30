@@ -4,55 +4,62 @@ import { supabase } from '../supabase/client'
 import FullScreenLoader from '../components/FullScreenLoader'
 import { useAuth } from '../context/AuthProvider'
 
+// utils
 function getSafeNext(raw) {
-  let n = typeof raw === 'string' && raw.startsWith('/') ? raw : '/dashboard'
-  // empêche les boucles vers /login
-  if (n === '/login' || n.startsWith('/login')) n = '/dashboard'
-  return n
+  let n = typeof raw === 'string' && raw.startsWith('/') ? raw : '/dashboard';
+  if (n === '/login' || n.startsWith('/login')) n = '/dashboard';
+  return n;
 }
 
 export default function Login() {
-  const { session, loading } = useAuth()  // ⬅️ nouveau
-  const [sp] = useSearchParams()
-  const next = useMemo(() => getSafeNext(sp.get('next')), [sp])
-  const navigate = useNavigate()
+  const { session, loading } = useAuth();
+  const [sp] = useSearchParams();
+  const next = useMemo(() => getSafeNext(sp.get('next')), [sp]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (loading) return;
     if (session) navigate(next, { replace: true });
-  }, [loading, session, next, navigate])
+  }, [loading, session, next, navigate]);
 
-  const [email, setEmail] = useState(sp.get('email') || '')
-  const [password, setPassword] = useState('')
-  const [showPw, setShowPw] = useState(false)
-  const [err, setErr] = useState('')
-  const [info, setInfo] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [email, setEmail] = useState(sp.get('email') || '');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [err, setErr] = useState('');
+  const [info, setInfo] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-if (loading) return <FullScreenLoader label="Ouverture de la page de connexion…" />
+  if (loading) return <FullScreenLoader label="Ouverture de la page de connexion…" />;
 
   async function onSubmit(e) {
-    e.preventDefault()
-    setErr(''); setInfo('')
-    setSubmitting(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setSubmitting(false)
-    if (error) return setErr(error.message)
-    navigate(next, { replace: true })
+    e.preventDefault();
+    setErr(''); setInfo(''); setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate(next, { replace: true });
+    } catch (e) {
+      setErr(e.message || 'Connexion impossible.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function sendMagicLink() {
-    setErr(''); setInfo(''); setSubmitting(true)
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}${next}` }
-    })
-    setSubmitting(false)
-    if (error) return setErr(error.message)
-    setInfo('Lien envoyé ! Vérifie ta boîte mail.')
+    setErr(''); setInfo(''); setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}${next}` },
+      });
+      if (error) throw error;
+      setInfo("Lien envoyé ! Vérifie ta boîte mail.");
+    } catch (e) {
+      setErr(e.message || 'Envoi du lien impossible.');
+    } finally {
+      setSubmitting(false);
+    }
   }
-
-  // … garde ton JSX (formulaire) identique en dessous
 
 
   return (
