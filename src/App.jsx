@@ -1,8 +1,5 @@
-// src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
-
-import ProtectedRoute from "./components/ProtectedRoute";     // 👈 garde ce fichier ici
-import DashboardLayout from "./layouts/DashboardLayout.jsx";  // 👈 rend <SidebarShell><Outlet/></SidebarShell>
+import DashboardLayout from "./layouts/DashboardLayout.jsx";
 
 import Dashboard from "./pages/Dashboard.jsx";
 import Prompt from "./pages/Prompt.jsx";
@@ -23,15 +20,14 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/logout" element={<LogoutRoute />} />
 
-      {/* Toutes les pages privées du dashboard : guard + layout (sidebar/burger) */}
-    <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/prompt" element={<Prompt />} />
-      <Route path="/image" element={<ImagePage />} />
-      <Route path="/video" element={<VideoPage />} />
-      <Route path="/a-savoir" element={<Asavoir />} />
-    </Route>
-
+      {/* Toutes les pages accessibles avec sidebar, connecté ou non */}
+      <Route element={<DashboardLayout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/prompt" element={<Prompt />} />
+        <Route path="/image" element={<ImagePage />} />
+        <Route path="/video" element={<VideoPage />} />
+        <Route path="/a-savoir" element={<Asavoir />} />
+      </Route>
 
       {/* fallback */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

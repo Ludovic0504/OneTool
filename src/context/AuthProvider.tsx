@@ -27,32 +27,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let mounted = true;
+ useEffect(() => {
+  let mounted = true;
+  supabase.auth.getSession().then(({ data }) => {
+    if (!mounted) return;
+    setSession(data.session ?? null);
+    setLoading(false);
+  });
 
-    // 1) lecture initiale
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session ?? null);
-      setLoading(false);
-    });
+  const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => {
+    if (!mounted) return;
+    setSession(sess ?? null);
+    setLoading(false);
+  });
 
-    // 2) écoute des changements
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
-      if (!mounted) return;
-      setSession(sess ?? null);
-      setLoading(false); // ← assure qu’on quitte le loading même si getSession traîne
-    });
+  return () => {
+    mounted = false;
+    sub.subscription.unsubscribe();
+  };
+}, []); // ✅ <-- tu gardes celui-là
 
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-
-  // Helpers
-  const signInWithPassword: AuthContextType['signInWithPassword'] = async ({ email, password }) =>
-    supabase.auth.signInWithPassword({ email, password });
+// Helpers
+const signInWithPassword: AuthContextType['signInWithPassword'] = async ({ email, password }) => {
+  return supabase.auth.signInWithPassword({ email, password });
+};
 
   const signInWithOtp: AuthContextType['signInWithOtp'] = async ({ email, redirectTo }) =>
     supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
