@@ -1,5 +1,17 @@
+// src/App.jsx
 import { useState, useEffect } from "react";
-// (tes autres imports restent identiques)
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+
+import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
+
+import Dashboard from "./pages/Dashboard";
+import Prompt from "./pages/Prompt";
+import ImagePage from "./pages/Image";
+import VideoPage from "./pages/Video";
+import Asavoir from "./pages/Asavoir";
+import Login from "./pages/Login";
+import LogoutRoute from "./pages/LogoutRoute";
 
 function AppLayout() {
   const [open, setOpen] = useState(false);
@@ -38,5 +50,30 @@ function AppLayout() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      {/* index -> dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      {/* pages publiques hors layout */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/logout" element={<LogoutRoute />} />
+
+      {/* pages sous layout (publiques) */}
+      <Route element={<AppLayout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/prompt" element={<Prompt />} />
+        <Route path="/image" element={<ImagePage />} />
+        <Route path="/video" element={<VideoPage />} />
+        <Route path="/a-savoir" element={<Asavoir />} />
+      </Route>
+
+      {/* wildcard en dernier */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 }
