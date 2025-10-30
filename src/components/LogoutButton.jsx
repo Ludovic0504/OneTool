@@ -7,21 +7,25 @@ export default function LogoutButton() {
   const [busy, setBusy] = useState(false);
 
   const handleLogout = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const { error } = await supabase.auth.signOut({ scope: "global" });
-      if (error) throw error;
+  if (busy) return;
+  setBusy(true);
+  try {
+    // Déconnexion globale Supabase
+    const { error } = await supabase.auth.signOut({ scope: "global" });
+    if (error) throw error;
 
-      // Optionnel : purge de caches/stores ici (queryClient.clear(), etc.)
-      navigate("/login", { replace: true });
-    } catch (e) {
-      console.error("Erreur de déconnexion :", e);
-      // TODO: toast/alert si besoin
-    } finally {
-      setBusy(false);
-    }
-  };
+    // Purge locale (optionnel)
+    localStorage.removeItem("onboarding-state");
+
+    // Redirection vers le dashboard
+    navigate("/dashboard", { replace: true }); // 👈 au lieu de /login
+  } catch (e) {
+    console.error("Erreur de déconnexion :", e);
+  } finally {
+    setBusy(false);
+  }
+};
+
 
   return (
     <button onClick={handleLogout} disabled={busy} aria-busy={busy}>
