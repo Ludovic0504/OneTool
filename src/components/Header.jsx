@@ -21,11 +21,6 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between p-4">
-      {/* ✅ 2. Le titre renvoie vers /dashboard */}
-      <h1 className="text-xl font-semibold">
-        <Link to="/dashboard">OneTool</Link>
-      </h1>
-
       {email ? (
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">{email}</span>
