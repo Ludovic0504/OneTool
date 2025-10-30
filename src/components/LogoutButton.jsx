@@ -1,17 +1,33 @@
-// src/components/LogoutButton.jsx
-import React from 'react';
-import { useAuth } from '@/context/AuthProvider';
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthProvider";
 
 export default function LogoutButton() {
-  const { supabase } = useAuth();
+  const { signOut } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const onClick = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await signOut();
+      // On reste sur la même page (mode invité)
+      navigate(location.pathname + location.search, { replace: true });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <button
-      onClick={async () => {
-        await supabase.auth.signOut();
-        // laisse le routeur/ProtectedRoute rediriger si nécessaire
-      }}
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      className="rounded px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-60"
     >
-      Déconnexion
+      {busy ? "Déconnexion…" : "Se déconnecter"}
     </button>
   );
 }

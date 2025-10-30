@@ -1,12 +1,12 @@
-// src/context/AuthProvider.tsx
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { type Session } from '@supabase/supabase-js';
-import { getBrowserSupabase } from '@/lib/supabase/browser-client';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
+import { getBrowserSupabase } from "@/lib/supabase/browser-client";
 
 type AuthCtx = {
   session: Session | null;
   loading: boolean;
-  supabase: ReturnType<typeof getBrowserSupabase>;
+  supabase: SupabaseClient;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthCtx | null>(null);
@@ -15,8 +15,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const supabase = useMemo(() => getBrowserSupabase(), []);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // évite de gérer 2x les mêmes events en HMR
   const mountedRef = useRef(false);
 
   useEffect(() => {
@@ -36,20 +34,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    init();
-
+    void init();
     return () => {
       if (unsub) unsub();
     };
   }, [supabase]);
 
-  const value = useMemo(() => ({ session, loading, supabase }), [session, loading, supabase]);
+  const signOut = async () => {
+    // Déconnexion propre + mise à jour immédiate de l’état local
+    await supabase.auth.signOut();
+    setSession(null);
+  };
+
+  const value = useMemo(
+    () => ({ session, loading, supabase, signOut }),
+    [session, loading, supabase]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
+  if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
   return ctx;
 }
