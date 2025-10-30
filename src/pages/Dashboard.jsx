@@ -1,6 +1,5 @@
-// src/pages/Dashboard.jsx
-import { useAuth } from '../context/AuthProvider';
-import { Link } from 'react-router-dom';
+import { useAuth } from "../context/AuthProvider";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { session } = useAuth();
@@ -17,11 +16,10 @@ export default function Dashboard() {
     );
   }
 
-  // contenu “connecté”
   return (
     <div className="p-6">
       <h2 className="text-xl font-semibold">Ton dashboard</h2>
-      {/* … ton contenu authentifié … */}
+      {/* contenu authentifié */}
     </div>
   );
 }

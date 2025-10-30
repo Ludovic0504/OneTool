@@ -1,22 +1,20 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase/client'
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthProvider';
 
 export default function LogoutRoute() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     (async () => {
       try {
-        await supabase.auth.signOut({ scope: 'local' });
-      } catch (e) {
-        console.error('Erreur signOut :', e)
+        await signOut();
       } finally {
-        await new Promise((r) => setTimeout(r, 50));
-        navigate('/login', { replace: true })
+        navigate('/login', { replace: true });
       }
-    })()
-  }, [navigate])
+    })();
+  }, [navigate, signOut]);
 
-  return null
+  return null;
 }
