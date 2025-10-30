@@ -8,7 +8,7 @@ import ImagePage from './pages/Image';
 import VideoPage from './pages/Video';
 import Asavoir from './pages/Asavoir';
 import Login from './pages/Login';
-import LogoutRoute from './pages/LogoutRoute'; // si tu l’as ajouté
+import LogoutRoute from './pages/LogoutRoute';
 
 function AppLayout() {
   return (

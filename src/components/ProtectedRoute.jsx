@@ -3,6 +3,9 @@ import { useSession } from '../supabase/useSession';
 import LoadingScreen from './LoadingScreen';
 
 export default function ProtectedRoute({ children }) {
+  // ➜ Mode public : pas d’auth
+  if (import.meta.env.VITE_REQUIRE_AUTH !== '1') return children;
+
   const { session, loading } = useSession();
   const location = useLocation();
 
