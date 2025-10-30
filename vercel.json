@@ -1,0 +1,1 @@
+printf '{\n  "rewrites": [{ "source": "/(.*)", "destination": "/" }]\n}\n' > vercel.json

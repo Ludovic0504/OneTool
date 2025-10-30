@@ -1,43 +1,75 @@
-export default function Login() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Connexion à OneTool
-        </h2>
-        <form className="space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-2">Adresse e-mail</label>
-            <input
-              type="email"
-              placeholder="tonemail@exemple.com"
-              className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Mot de passe</label>
-            <input
-              type="password"
-              placeholder="********"
-              className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-300"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Se connecter
-          </button>
-        </form>
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { supabase } from '../supabase/client';
+import { useSession } from '../supabase/useSession';
 
-        <p className="text-center text-gray-600 text-sm mt-4">
-          Clique{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
-            ici
-          </a>{" "}
-          si tu n'as pas de compte.
-        </p>
-      </div>
-    </div>
+export default function Login() {
+  const { session } = useSession();
+  const [sp] = useSearchParams();
+  const next = sp.get('next') || '/dashboard';
+  const navigate = useNavigate();
+
+  // Déjà connecté ? -> aller direct vers "next"
+  useEffect(() => {
+    if (session) navigate(next, { replace: true });
+  }, [session, navigate, next]);
+
+  const [email, setEmail] = useState('test@onetool.local'); // pour tes tests
+  const [password, setPassword] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setErr('');
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) return setErr(error.message);
+    navigate(next, { replace: true });
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center p-4">
+      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 p-6 rounded-2xl border bg-white">
+        <h1 className="text-2xl font-semibold text-center">Connexion</h1>
+        {err && <p className="text-sm text-red-600">{err}</p>}
+
+        <label className="block">
+          <span className="text-sm">Email</span>
+          <input
+            className="mt-1 w-full border rounded-xl p-3"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+            placeholder="vous@exemple.com"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm">Mot de passe</span>
+          <input
+            className="mt-1 w-full border rounded-xl p-3"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+        </label>
+
+        <button
+          disabled={loading}
+          className="w-full rounded-xl p-3 border font-medium disabled:opacity-50"
+        >
+          {loading ? 'Connexion…' : 'Se connecter'}
+        </button>
+
+        <div className="text-center text-sm">
+          <Link to="/" className="text-gray-600 hover:underline">← Retour</Link>
+        </div>
+      </form>
+    </main>
   );
 }

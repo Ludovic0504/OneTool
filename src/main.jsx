@@ -3,17 +3,12 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
-
-// 👇 Ajoute cette ligne
-import PreviewGate from "./PreviewGate";
+import "./App.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* 👇 Enveloppe ton App ici */}
-      <PreviewGate>
-        <App />
-      </PreviewGate>
+      <App />
     </BrowserRouter>
   </React.StrictMode>
 );

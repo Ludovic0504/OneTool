@@ -1,11 +1,13 @@
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import Sidebar from "./components/Sidebar";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Prompt from "./pages/Prompt";
-import Image from "./pages/Image";
-import Video from "./pages/Video";
-import ASavoir from "./pages/Asavoir.jsx";
+import ImagePage from "./pages/Image";
+import VideoPage from "./pages/Video";
+import Asavoir from "./pages/Asavoir";
+import Login from "./pages/Login";
 
 function AppLayout() {
   return (
@@ -24,18 +26,18 @@ function AppLayout() {
 export default function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/prompt" element={<Prompt />} />
-        <Route path="/image" element={<Image />} />
-        <Route path="/video" element={<Video />} />
-        <Route path="/a-savoir" element={<ASavoir />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
+      <Route element={<AppLayout />}>
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/prompt" element={<ProtectedRoute><Prompt /></ProtectedRoute>} />
+        <Route path="/image" element={<ProtectedRoute><ImagePage /></ProtectedRoute>} />
+        <Route path="/video" element={<ProtectedRoute><VideoPage /></ProtectedRoute>} />
+        <Route path="/a-savoir" element={<ProtectedRoute><Asavoir /></ProtectedRoute>} />
       </Route>
 
-      {/* Route fallback si URL non reconnue */}
-      <Route path="*" element={<Dashboard />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
