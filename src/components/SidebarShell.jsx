@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthProvider";
 
 const LINKS = [
   ["/dashboard", "Dashboard"],
@@ -12,6 +14,8 @@ const LINKS = [
 export default function SidebarShell({ children }) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
+  const navigate = useNavigate();
+  const { signOut } = useAuth(); // ← logout SPA, pas de <form action>
 
   // Fermer avec Échap
   useEffect(() => {
@@ -30,15 +34,26 @@ export default function SidebarShell({ children }) {
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  // Bloquer le scroll quand ouvert (mobile)
+  // Bloquer/débloquer le scroll quand le drawer est ouvert
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => (document.body.style.overflow = "");
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = open ? "hidden" : prev || "";
+    return () => (document.body.style.overflow = prev || "");
   }, [open]);
 
+  // Logout SPA (corrige l'écran blanc)
+  async function handleLogout() {
+    try {
+      await signOut();
+    } finally {
+      setOpen(false);
+      navigate("/login", { replace: true });
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Sidebar fixe (≥ md) */}
+    <div className="min-h-dvh bg-white">
+      {/* SIDEBAR FIXE (desktop ≥ md) */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-64 flex-col border-r bg-white p-4">
         <div className="mb-4 text-xl font-semibold">OneTool</div>
         <nav className="flex flex-col gap-1">
@@ -48,13 +63,16 @@ export default function SidebarShell({ children }) {
             </a>
           ))}
         </nav>
-        <form className="mt-auto pt-4" action="/logout" method="post">
-          <button className="w-full rounded border px-3 py-2">Se déconnecter</button>
-        </form>
+        <button
+          onClick={handleLogout}
+          className="mt-auto rounded border px-3 py-2"
+        >
+          Se déconnecter
+        </button>
       </aside>
 
-      {/* Barre supérieure (mobile uniquement) */}
-      <div className="md:hidden sticky top-0 z-50 flex items-center justify-between border-b bg-white px-4 py-3">
+      {/* TOPBAR MOBILE (uniquement < md) */}
+      <div className="md:hidden sticky top-0 z-50 flex items-center justify-between border-b bg-white px-4 py-[calc(12px+env(safe-area-inset-top,0))]">
         <button
           className="rounded border p-2"
           onClick={() => setOpen(true)}
@@ -64,23 +82,24 @@ export default function SidebarShell({ children }) {
           <Menu size={18} />
         </button>
         <a href="/dashboard" className="text-lg font-semibold">OneTool</a>
-        <form action="/logout" method="post">
-          <button className="rounded border px-3 py-2 text-sm">Se déconnecter</button>
-        </form>
+        <button className="rounded border px-3 py-2 text-sm" onClick={handleLogout}>
+          Se déconnecter
+        </button>
       </div>
 
-      {/* Overlay (mobile) */}
+      {/* OVERLAY MOBILE (clique → ferme) */}
       <div
         className={`md:hidden fixed inset-0 z-40 bg-black/40 transition-opacity ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
+        onClick={() => setOpen(false)}
         aria-hidden={!open}
       />
 
-      {/* Drawer mobile */}
+      {/* DRAWER MOBILE */}
       <div
         ref={panelRef}
-        className={`md:hidden fixed left-0 top-0 z-50 h-full w-72 translate-x-0 border-r bg-white p-4 transition-transform ${
+        className={`md:hidden fixed left-0 top-0 z-50 h-dvh w-72 translate-x-0 border-r bg-white p-4 transition-transform overflow-y-auto ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         role="dialog"
@@ -103,24 +122,23 @@ export default function SidebarShell({ children }) {
               key={href}
               href={href}
               className="rounded px-3 py-2 hover:bg-gray-100"
-              onClick={() => setOpen(false)}
+              onClick={() => setOpen(false)} // ← fermer au clic lien
             >
               {label}
             </a>
           ))}
         </nav>
 
-        <form className="mt-4" action="/logout" method="post">
-          <button className="w-full rounded border px-3 py-2" onClick={() => setOpen(false)}>
-            Se déconnecter
-          </button>
-        </form>
+        <button
+          className="mt-4 w-full rounded border px-3 py-2"
+          onClick={handleLogout}
+        >
+          Se déconnecter
+        </button>
       </div>
 
-      {/* Contenu (décalé en desktop) */}
-      <main className="px-4 py-6 md:ml-64 md:px-8">
-        {children}
-      </main>
+      {/* CONTENU (décalé en desktop) */}
+      <main className="px-4 py-6 md:ml-64 md:px-8">{children}</main>
     </div>
   );
 }
