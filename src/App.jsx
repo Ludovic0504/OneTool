@@ -1,13 +1,14 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
-import Dashboard from "./pages/Dashboard";
-import Prompt from "./pages/Prompt";
-import ImagePage from "./pages/Image";
-import VideoPage from "./pages/Video";
-import Asavoir from "./pages/Asavoir";
-import Login from "./pages/Login";
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import Dashboard from './pages/Dashboard';
+import Prompt from './pages/Prompt';
+import ImagePage from './pages/Image';
+import VideoPage from './pages/Video';
+import Asavoir from './pages/Asavoir';
+import Login from './pages/Login';
+import LogoutRoute from './pages/LogoutRoute'; // si tu l’as ajouté
 
 function AppLayout() {
   return (
@@ -26,8 +27,14 @@ function AppLayout() {
 export default function App() {
   return (
     <Routes>
+      {/* index -> dashboard */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
+      {/* login public, hors layout */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/logout" element={<LogoutRoute />} />
+
+      {/* privé sous layout */}
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/prompt" element={<ProtectedRoute><Prompt /></ProtectedRoute>} />
@@ -36,7 +43,7 @@ export default function App() {
         <Route path="/a-savoir" element={<ProtectedRoute><Asavoir /></ProtectedRoute>} />
       </Route>
 
-      <Route path="/login" element={<Login />} />
+      {/* wildcard à la fin uniquement */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
