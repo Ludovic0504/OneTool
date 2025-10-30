@@ -1,73 +1,55 @@
-'use client';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import supabase from '../supabase/client';
-import type { Session, User } from '@supabase/supabase-js';
+// src/context/AuthProvider.tsx
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { type Session } from '@supabase/supabase-js';
+import { getBrowserSupabase } from '@/lib/supabase/browser-client';
 
-type AuthContextType = {
+type AuthCtx = {
   session: Session | null;
-  user: User | null;
   loading: boolean;
-  signInWithPassword: (args: { email: string; password: string }) => Promise<{ error: Error | null }>;
-  signInWithOtp: (args: { email: string; redirectTo?: string }) => Promise<{ error: Error | null }>;
-  signOut: () => Promise<{ error: Error | null }>;
+  supabase: ReturnType<typeof getBrowserSupabase>;
 };
 
-const AuthContext = createContext<AuthContextType>({
-  session: null,
-  user: null,
-  loading: true,
-  signInWithPassword: async () => ({ error: null }),
-  signInWithOtp: async () => ({ error: null }),
-  signOut: async () => ({ error: null }),
-});
+const AuthContext = createContext<AuthCtx | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const supabase = useMemo(() => getBrowserSupabase(), []);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
-  let mounted = true;
-  supabase.auth.getSession().then(({ data }) => {
-    if (!mounted) return;
-    setSession(data.session ?? null);
-    setLoading(false);
-  });
+  // évite de gérer 2x les mêmes events en HMR
+  const mountedRef = useRef(false);
 
-  const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => {
-    if (!mounted) return;
-    setSession(sess ?? null);
-    setLoading(false);
-  });
+  useEffect(() => {
+    let unsub: (() => void) | undefined;
 
-  return () => {
-    mounted = false;
-    sub.subscription.unsubscribe();
-  };
-}, []); // ✅ <-- tu gardes celui-là
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session ?? null);
+      setLoading(false);
 
-// Helpers
-const signInWithPassword: AuthContextType['signInWithPassword'] = async ({ email, password }) => {
-  return supabase.auth.signInWithPassword({ email, password });
-};
+      if (!mountedRef.current) {
+        const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+          setSession(s ?? null);
+        });
+        unsub = () => sub.subscription.unsubscribe();
+        mountedRef.current = true;
+      }
+    };
 
-  const signInWithOtp: AuthContextType['signInWithOtp'] = async ({ email, redirectTo }) =>
-    supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+    init();
 
-  const signOut: AuthContextType['signOut'] = async () => supabase.auth.signOut();
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [supabase]);
 
-  const value = useMemo<AuthContextType>(
-    () => ({
-      session,
-      user: session?.user ?? null,
-      loading,
-      signInWithPassword,
-      signInWithOtp,
-      signOut,
-    }),
-    [session, loading]
-  );
+  const value = useMemo(() => ({ session, loading, supabase }), [session, loading, supabase]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
+  return ctx;
 }

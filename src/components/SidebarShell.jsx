@@ -1,56 +1,80 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthProvider";
 
-const LINKS = [
+const links = [
   ["/dashboard", "Dashboard"],
-  ["/prompt", "Prompt"],
-  ["/image", "Image"],
-  ["/video", "Vidéo"],
-  ["/a-savoir", "À savoir"],
+  ["/prompt", "Prompts"],
+  ["/image", "Images"],
+  ["/video", "Vidéos"],
+  ["/a-savoir", "A savoir"],
 ];
 
 export default function SidebarShell({ children }) {
   const [open, setOpen] = useState(false);
+  const [openedAt, setOpenedAt] = useState(0); // timestamp d’ouverture
   const panelRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signOut } = useAuth();
 
-  // Échap → fermer
+  // Fermer avec Échap
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && setOpen(false);
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  // Clic hors panneau → fermer
+  // Fermer en cliquant à l’extérieur (capture pour fiabilité mobile)
   useEffect(() => {
-    const onClick = (e) => {
+    const onPointerDown = (e) => {
       if (!open) return;
-      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
 
-  // Bloque/débloque le scroll body quand le drawer est ouvert
+      // fenêtre de grâce après ouverture (empêche la fermeture instantanée)
+      if (Date.now() - openedAt < 250) return;
+
+      const panel = panelRef.current;
+      if (!panel) return;
+
+      const target = e.target;
+      const clickedInside = panel.contains(target);
+      if (!clickedInside) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [open, openedAt]);
+
+  // Bloquer le scroll body quand le drawer est ouvert
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = open ? "hidden" : prev || "";
-    return () => (document.body.style.overflow = prev || "");
+    return () => {
+      document.body.style.overflow = prev || "";
+    };
   }, [open]);
 
+  // Fermer le drawer lors d’un changement de route (clic sur un lien)
+  useEffect(() => {
+    if (open) setOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.search]);
+
+  // Déconnexion sans redirection /login
   async function handleLogout() {
     try {
-      await signOut();
+      await signOut?.(); // si ton context expose signOut
+      // Sinon: const { supabase } = useAuth(); await supabase.auth.signOut();
     } finally {
       setOpen(false);
-      navigate("/login", { replace: true });
+      // reste sur la page actuelle (mode invité)
+      navigate(location.pathname + location.search, { replace: true });
     }
   }
 
-  // Composant de lien interne (ferme le drawer au clic)
+  // Lien qui ferme le drawer
   const Item = ({ to, children }) => (
     <NavLink
       to={to}
@@ -63,79 +87,103 @@ export default function SidebarShell({ children }) {
     </NavLink>
   );
 
+  // Ouvrir via le bouton burger (depuis Header)
+  const onOpenMenu = () => {
+    setOpenedAt(Date.now());
+    setOpen(true);
+  };
+
   return (
-    <div className="min-h-dvh bg-white">
-      {/* Sidebar fixe desktop */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-64 flex-col border-r bg-white p-4 z-40">
-        <div className="mb-4 text-xl font-semibold">OneTool</div>
-        <nav className="flex flex-col gap-1">
-          {LINKS.map(([href, label]) => (
-            <Item key={href} to={href}>{label}</Item>
+    <div className="min-h-screen bg-gray-100 flex">
+      {/* Sidebar desktop */}
+      <aside className="hidden md:block w-60 border-r bg-white">
+        <div className="p-4 font-semibold text-lg">OneTool</div>
+        <nav className="flex flex-col gap-1 px-3">
+          {links.map(([to, label]) => (
+            <Item key={to} to={to}>
+              {label}
+            </Item>
           ))}
         </nav>
-        <button onClick={handleLogout} className="mt-auto rounded border px-3 py-2">
+        <button
+          onClick={handleLogout}
+          className="mt-6 mx-3 rounded px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100"
+        >
           Se déconnecter
         </button>
       </aside>
 
-      {/* Topbar mobile */}
-      <div className="md:hidden sticky top-0 z-50 flex items-center justify-between border-b bg-white px-4 py-[calc(12px+env(safe-area-inset-top,0))]">
-        <button
-          className="rounded border p-2"
-          onClick={() => setOpen(true)}
-          aria-label="Ouvrir le menu"
-          aria-expanded={open}
-        >
-          <Menu size={18} />
-        </button>
-        <NavLink to="/dashboard" className="text-lg font-semibold" onClick={() => setOpen(false)}>
-          OneTool
-        </NavLink>
-        <button className="rounded border px-3 py-2 text-sm" onClick={handleLogout}>
-          Se déconnecter
-        </button>
-      </div>
+      {/* Overlay + Drawer mobile */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm md:hidden z-40"
+          onMouseDown={(e) => {
+            // évite de refermer si on vient juste d’ouvrir
+            if (Date.now() - openedAt < 250) return;
+            e.stopPropagation();
+            setOpen(false);
+          }}
+          onTouchStart={(e) => {
+            if (Date.now() - openedAt < 250) return;
+            e.stopPropagation();
+            setOpen(false);
+          }}
+        />
+      )}
 
-      {/* Overlay mobile (clique → ferme) */}
-      <div
-        className={`md:hidden fixed inset-0 z-40 bg-black/40 transition-opacity ${
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setOpen(false)}
-        aria-hidden={!open}
-      />
-
-      {/* Drawer mobile */}
-      <div
+      <aside
         ref={panelRef}
-        className={`md:hidden fixed left-0 top-0 z-50 h-dvh w-72 border-r bg-white p-4 transition-transform
-          ${open ? "translate-x-0" : "-translate-x-full"} overflow-y-auto`}
-        role="dialog" aria-modal="true"
+        className={`fixed inset-y-0 left-0 w-60 bg-white border-r transform transition-transform duration-200 z-50 md:hidden ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+        aria-hidden={!open}
       >
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-lg font-semibold">Navigation</span>
+        <div className="flex items-center justify-between p-4 border-b">
+          <span className="font-semibold text-lg">OneTool</span>
           <button
-            className="rounded border px-2 py-1"
             onClick={() => setOpen(false)}
-            aria-label="Fermer"
+            className="text-gray-500 hover:text-gray-700 text-xl"
           >
-            <X size={16} />
+            ×
           </button>
         </div>
 
-        <nav className="flex flex-col gap-1">
-          {LINKS.map(([href, label]) => (
-            <Item key={href} to={href}>{label}</Item>
+        <nav className="flex flex-col gap-1 px-3 py-3">
+          {links.map(([to, label]) => (
+            <Item key={to} to={to}>
+              {label}
+            </Item>
           ))}
         </nav>
 
-        <button className="mt-4 w-full rounded border px-3 py-2" onClick={handleLogout}>
+        <button
+          onClick={handleLogout}
+          className="mt-2 mx-3 rounded px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100"
+        >
           Se déconnecter
         </button>
-      </div>
+      </aside>
 
-      {/* Contenu (décalé en desktop) */}
-      <main className="px-4 py-6 md:ml-64 md:px-8">{children}</main>
+      {/* Contenu principal */}
+      <main className="flex-1 min-h-screen">
+        <header className="p-4 border-b bg-white flex items-center justify-between md:hidden">
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onClick={() => {
+              setOpenedAt(Date.now());
+              setOpen(true);
+            }}
+            className="p-2 rounded bg-gray-100 hover:bg-gray-200"
+            aria-label="Ouvrir le menu"
+          >
+            ≡
+          </button>
+          <span className="font-semibold">OneTool</span>
+        </header>
+
+        <div className="p-4">{children}</div>
+      </main>
     </div>
   );
 }

@@ -1,20 +1,16 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthProvider';
+// src/pages/LogoutRoute.jsx
+import React, { useEffect, useRef } from 'react';
+import { useAuth } from '@/context/AuthProvider';
 
 export default function LogoutRoute() {
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { supabase } = useAuth();
+  const done = useRef(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        await signOut();
-      } finally {
-        navigate('/login', { replace: true });
-      }
-    })();
-  }, [navigate, signOut]);
+    if (done.current) return;
+    done.current = true;
+    supabase.auth.signOut();
+  }, [supabase]);
 
-  return null;
+  return <div>Déconnexion…</div>;
 }
