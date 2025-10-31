@@ -12,39 +12,35 @@ const links = [
 export default function SidebarShell({ children, open, onCloseMenu }) {
   const panelRef = useRef(null);
   const location = useLocation();
-  const [openedAt, setOpenedAt] = useState(0); // garde juste le grace period
-  useEffect(() => { if (open) setOpenedAt(Date.now()); }, [open]);
-  export default function SidebarShell({ children, open, onCloseMenu }) {
-  console.log("[Sidebar] prop open =", open);
+  const [openedAt, setOpenedAt] = useState(0); // grace period anti-fermeture immédiate
 
+  // Quand on ouvre, on mémorise l’instant d’ouverture
+  useEffect(() => {
+    if (open) setOpenedAt(Date.now());
+  }, [open]);
 
   // Fermer avec Échap
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onCloseMenu?.();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, []);
+  }, [onCloseMenu]);
 
-  // Fermer en cliquant à l’extérieur (capture pour fiabilité mobile)
+  // Fermer en cliquant à l’extérieur (mobile friendly)
   useEffect(() => {
     const onPointerDown = (e) => {
       if (!open) return;
-
-      // fenêtre de grâce après ouverture (empêche la fermeture instantanée)
-      if (Date.now() - openedAt < 250) return;
-
+      if (Date.now() - openedAt < 250) return; // fenêtre de grâce
       const panel = panelRef.current;
       if (!panel) return;
-
       const clickedInside = panel.contains(e.target);
-      if (!clickedInside) onCloseMenu?.()
+      if (!clickedInside) onCloseMenu?.();
     };
-
     document.addEventListener("pointerdown", onPointerDown, true);
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
-  }, [open, openedAt]);
+  }, [open, openedAt, onCloseMenu]);
 
-  // Bloquer le scroll body quand le drawer est ouvert
+  // Bloquer le scroll du body quand le drawer est ouvert
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = open ? "hidden" : prev || "";
@@ -52,6 +48,12 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
       document.body.style.overflow = prev || "";
     };
   }, [open]);
+
+  // Fermer lors d’un changement de route
+  useEffect(() => {
+    if (open) onCloseMenu?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.search]);
 
   // Lien qui ferme le drawer
   const Item = ({ to, children }) => (
@@ -73,9 +75,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
         <div className="p-4 font-semibold text-lg">OneTool</div>
         <nav className="flex flex-col gap-1 px-3">
           {links.map(([to, label]) => (
-            <Item key={to} to={to}>
-              {label}
-            </Item>
+            <Item key={to} to={to}>{label}</Item>
           ))}
         </nav>
       </aside>
@@ -84,16 +84,8 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
       {open && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm md:hidden z-40"
-          onMouseDown={(e) => {
-            if (Date.now() - openedAt < 250) return;
-            e.stopPropagation();
-            onCloseMenu?.();
-          }}
-          onTouchStart={(e) => {
-            if (Date.now() - openedAt < 250) return;
-            e.stopPropagation();
-            onCloseMenu?.();
-          }}
+          onMouseDown={() => onCloseMenu?.()}
+          onTouchStart={() => onCloseMenu?.()}
         />
       )}
 
@@ -117,16 +109,14 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
         <nav className="flex flex-col gap-1 px-3 py-3">
           {links.map(([to, label]) => (
-            <Item key={to} to={to}>
-              {label}
-            </Item>
+            <Item key={to} to={to}>{label}</Item>
           ))}
         </nav>
       </aside>
 
       {/* Contenu principal */}
       <main className="flex-1 min-h-screen">
-          <div className="p-4">{children}</div>
+        <div className="p-4">{children}</div>
       </main>
     </div>
   );
