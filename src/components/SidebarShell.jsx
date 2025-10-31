@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthProvider";
+import { NavLink, useLocation } from "react-router-dom";
 
 const links = [
   ["/dashboard", "Dashboard"],
@@ -14,9 +13,7 @@ export default function SidebarShell({ children }) {
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(0); // timestamp d’ouverture
   const panelRef = useRef(null);
-  const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
 
   // Fermer avec Échap
   useEffect(() => {
@@ -36,11 +33,8 @@ export default function SidebarShell({ children }) {
       const panel = panelRef.current;
       if (!panel) return;
 
-      const target = e.target;
-      const clickedInside = panel.contains(target);
-      if (!clickedInside) {
-        setOpen(false);
-      }
+      const clickedInside = panel.contains(e.target);
+      if (!clickedInside) setOpen(false);
     };
 
     document.addEventListener("pointerdown", onPointerDown, true);
@@ -62,18 +56,6 @@ export default function SidebarShell({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
-  // Déconnexion sans redirection /login
-  async function handleLogout() {
-    try {
-      await signOut?.(); // si ton context expose signOut
-      // Sinon: const { supabase } = useAuth(); await supabase.auth.signOut();
-    } finally {
-      setOpen(false);
-      // reste sur la page actuelle (mode invité)
-      navigate(location.pathname + location.search, { replace: true });
-    }
-  }
-
   // Lien qui ferme le drawer
   const Item = ({ to, children }) => (
     <NavLink
@@ -87,12 +69,6 @@ export default function SidebarShell({ children }) {
     </NavLink>
   );
 
-  // Ouvrir via le bouton burger (depuis Header)
-  const onOpenMenu = () => {
-    setOpenedAt(Date.now());
-    setOpen(true);
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar desktop */}
@@ -105,12 +81,6 @@ export default function SidebarShell({ children }) {
             </Item>
           ))}
         </nav>
-        <button
-          onClick={handleLogout}
-          className="mt-6 mx-3 rounded px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100"
-        >
-          Se déconnecter
-        </button>
       </aside>
 
       {/* Overlay + Drawer mobile */}
@@ -118,7 +88,6 @@ export default function SidebarShell({ children }) {
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm md:hidden z-40"
           onMouseDown={(e) => {
-            // évite de refermer si on vient juste d’ouvrir
             if (Date.now() - openedAt < 250) return;
             e.stopPropagation();
             setOpen(false);
@@ -143,6 +112,7 @@ export default function SidebarShell({ children }) {
           <button
             onClick={() => setOpen(false)}
             className="text-gray-500 hover:text-gray-700 text-xl"
+            aria-label="Fermer le menu"
           >
             ×
           </button>
@@ -155,17 +125,11 @@ export default function SidebarShell({ children }) {
             </Item>
           ))}
         </nav>
-
-        <button
-          onClick={handleLogout}
-          className="mt-2 mx-3 rounded px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100"
-        >
-          Se déconnecter
-        </button>
       </aside>
 
       {/* Contenu principal */}
       <main className="flex-1 min-h-screen">
+        {/* Petit header mobile pour le bouton burger (si tu as un Header global, tu peux supprimer ce bloc) */}
         <header className="p-4 border-b bg-white flex items-center justify-between md:hidden">
           <button
             onMouseDown={(e) => e.stopPropagation()}
