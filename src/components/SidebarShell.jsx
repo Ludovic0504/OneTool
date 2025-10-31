@@ -14,6 +14,9 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
   const location = useLocation();
   const [openedAt, setOpenedAt] = useState(0); // garde juste le grace period
   useEffect(() => { if (open) setOpenedAt(Date.now()); }, [open]);
+  export default function SidebarShell({ children, open, onCloseMenu }) {
+  console.log("[Sidebar] prop open =", open);
+
 
   // Fermer avec Échap
   useEffect(() => {

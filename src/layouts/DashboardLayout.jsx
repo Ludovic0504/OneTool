@@ -5,6 +5,8 @@ import { Outlet } from "react-router-dom";
 
 export default function DashboardLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  console.log("[Layout] menuOpen =", menuOpen); // 👈 ajoute cette ligne
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
