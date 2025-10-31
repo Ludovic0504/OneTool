@@ -10,14 +10,14 @@ const links = [
 ];
 
 export default function SidebarShell({ children, open, onCloseMenu }) {
-  const [open, setOpen] = useState(false);
-  const [openedAt, setOpenedAt] = useState(0); // timestamp d’ouverture
   const panelRef = useRef(null);
   const location = useLocation();
+  const [openedAt, setOpenedAt] = useState(0); // garde juste le grace period
+  useEffect(() => { if (open) setOpenedAt(Date.now()); }, [open]);
 
   // Fermer avec Échap
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    const onKey = (e) => e.key === "Escape" && onCloseMenu?.();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
@@ -34,7 +34,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
       if (!panel) return;
 
       const clickedInside = panel.contains(e.target);
-      if (!clickedInside) setOpen(false);
+      if (!clickedInside) onCloseMenu?.()
     };
 
     document.addEventListener("pointerdown", onPointerDown, true);
@@ -50,16 +50,6 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
     };
   }, [open]);
 
-    useEffect(() => {
-      const onOpen = () => {
-        setOpenedAt(Date.now());
-        setOpen(true);
-      };
-      window.addEventListener("onetool:openSidebar", onOpen);
-      return () => window.removeEventListener("onetool:openSidebar", onOpen);
-    }, []);
-
-
   // Lien qui ferme le drawer
   const Item = ({ to, children }) => (
     <NavLink
@@ -67,7 +57,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
       className={({ isActive }) =>
         `rounded px-3 py-2 hover:bg-gray-100 ${isActive ? "bg-gray-100 font-medium" : ""}`
       }
-      onClick={() => setOpen(false)}
+      onClick={() => onCloseMenu?.()}
     >
       {children}
     </NavLink>
@@ -94,12 +84,12 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
           onMouseDown={(e) => {
             if (Date.now() - openedAt < 250) return;
             e.stopPropagation();
-            setOpen(false);
+            onCloseMenu?.();
           }}
           onTouchStart={(e) => {
             if (Date.now() - openedAt < 250) return;
             e.stopPropagation();
-            setOpen(false);
+            onCloseMenu?.();
           }}
         />
       )}
@@ -114,7 +104,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
         <div className="flex items-center justify-between p-4 border-b">
           <span className="font-semibold text-lg">OneTool</span>
           <button
-            onClick={() => setOpen(false)}
+            onClick={() => onCloseMenu?.()}
             className="text-gray-500 hover:text-gray-700 text-xl"
             aria-label="Fermer le menu"
           >
