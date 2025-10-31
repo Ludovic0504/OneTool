@@ -128,26 +128,9 @@ export default function SidebarShell({ children }) {
       </aside>
 
       {/* Contenu principal */}
-      <main className="flex-1 min-h-screen">
-        {/* Petit header mobile pour le bouton burger (si tu as un Header global, tu peux supprimer ce bloc) */}
-        <header className="p-4 border-b bg-white flex items-center justify-between md:hidden">
-          <button
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onClick={() => {
-              setOpenedAt(Date.now());
-              setOpen(true);
-            }}
-            className="p-2 rounded bg-gray-100 hover:bg-gray-200"
-            aria-label="Ouvrir le menu"
-          >
-            ≡
-          </button>
-          <span className="font-semibold">OneTool</span>
-        </header>
-
-        <div className="p-4">{children}</div>
-      </main>
+<main className="flex-1 min-h-screen">
+  <div className="p-4">{children}</div>
+</main>
     </div>
   );
 }
