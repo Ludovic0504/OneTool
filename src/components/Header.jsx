@@ -29,13 +29,10 @@ export default function Header({ onOpenMenu }) {
           type="button"
           className="sm:hidden p-2 rounded hover:bg-gray-100"
           aria-label="Ouvrir le menu"
-          onClick={(e) => {
-  e.stopPropagation();
-  window.dispatchEvent(new CustomEvent("onetool:openSidebar"));
-}}
-        >
-          <Menu size={20} />
-        </button>
+          onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("onetool:openSidebar")); }}
+      >
+        <Menu size={20} />
+      </button>
 
         {/* Brand → dashboard */}
         <Link to="/dashboard" className="text-base sm:text-lg font-semibold">

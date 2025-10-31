@@ -9,7 +9,7 @@ const links = [
   ["/a-savoir", "A savoir"],
 ];
 
-export default function SidebarShell({ children }) {
+export default function SidebarShell({ children, open, onCloseMenu }) {
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(0); // timestamp d’ouverture
   const panelRef = useRef(null);
@@ -50,11 +50,15 @@ export default function SidebarShell({ children }) {
     };
   }, [open]);
 
-  // Fermer le drawer lors d’un changement de route (clic sur un lien)
-  useEffect(() => {
-    if (open) setOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, location.search]);
+    useEffect(() => {
+      const onOpen = () => {
+        setOpenedAt(Date.now());
+        setOpen(true);
+      };
+      window.addEventListener("onetool:openSidebar", onOpen);
+      return () => window.removeEventListener("onetool:openSidebar", onOpen);
+    }, []);
+
 
   // Lien qui ferme le drawer
   const Item = ({ to, children }) => (
@@ -128,9 +132,9 @@ export default function SidebarShell({ children }) {
       </aside>
 
       {/* Contenu principal */}
-<main className="flex-1 min-h-screen">
-  <div className="p-4">{children}</div>
-</main>
+      <main className="flex-1 min-h-screen">
+          <div className="p-4">{children}</div>
+      </main>
     </div>
   );
 }
