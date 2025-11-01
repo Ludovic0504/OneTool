@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
-
+import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard.jsx";
 import Prompt from "./pages/Prompt.jsx";
 import ImagePage from "./pages/Image.jsx";
