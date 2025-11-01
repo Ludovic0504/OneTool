@@ -19,6 +19,7 @@ export default function App() {
       {/* pages publiques (pas de sidebar) */}
       <Route path="/login" element={<Login />} />
       <Route path="/logout" element={<LogoutRoute />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
 
       {/* Toutes les pages accessibles avec sidebar, connecté ou non */}
       <Route element={<DashboardLayout />}>
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/image" element={<ImagePage />} />
         <Route path="/video" element={<VideoPage />} />
         <Route path="/a-savoir" element={<Asavoir />} />
+        
       </Route>
 
       {/* fallback */}
