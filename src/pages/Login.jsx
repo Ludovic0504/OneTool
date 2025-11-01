@@ -10,6 +10,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mlLoading, setMlLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const onSubmit = async (e) => {
