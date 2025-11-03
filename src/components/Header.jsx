@@ -17,8 +17,7 @@ export default function Header({ onOpenMenu }) {
   return (
     // full-bleed + collé en haut
     <header className="sticky top-0 z-50 w-full border-b border-gray-700 bg-[#0f172a] text-gray-100 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-[#0f172a]/90">
-      {/* pas de max-w ici -> full width ; on garde juste la safe-area */}
-      <div className="safe-padded h-14 flex items-center gap-3">
+      <div className="pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-14 flex items-center gap-3">
         {/* Gauche : burger collé + brand */}
         <button
           type="button"
@@ -68,9 +67,10 @@ export default function Header({ onOpenMenu }) {
           ) : (
             <Link
               to="/login"
-              className="inline-flex items-center rounded-md bg-blue-600 text-white px-4 py-1.5 text-xs font-medium shadow-sm hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+              className="inline-flex items-center rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+
             >
-              Se connecter
+              Connexion
             </Link>
 
           )}
