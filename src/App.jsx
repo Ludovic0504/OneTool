@@ -6,7 +6,6 @@ import Prompt from "./pages/Prompt.jsx";
 import ImagePage from "./pages/Image.jsx";
 import VideoPage from "./pages/Video.jsx";
 import Asavoir from "./pages/Asavoir.jsx";
-import { useState } from "react";
 import Login from "./pages/Login.jsx";
 import LogoutRoute from "./pages/LogoutRoute.jsx";
 import { ErrorBoundary } from "react-error-boundary";
@@ -47,6 +46,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<LogoutRoute />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/health" element={<div style={{ padding: 20 }}>OK</div>} />
+
 
         {/* Toutes les pages accessibles avec sidebar, connecté ou non */}
         <Route element={<DashboardLayout />}>
