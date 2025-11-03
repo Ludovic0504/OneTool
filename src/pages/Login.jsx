@@ -1,26 +1,25 @@
+// src/pages/Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase/browser-client";
+import { getBrowserSupabase } from "@/lib/supabase/browser-client";
 
 export default function Login() {
   const navigate = useNavigate();
+  const supabase = getBrowserSupabase();
 
-  // UI state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // IMPORTANT : callback exact (prod ou local selon l'origine)
   const redirectTo = `${window.location.origin}/auth/callback`;
 
-  // --- OAuth: Google ---
   async function signInWithGoogle() {
     setErrorMsg("");
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo }, // 👈 indispensable pour PKCE
+        options: { redirectTo },
       });
       if (error) throw error;
     } catch (e) {
@@ -29,13 +28,12 @@ export default function Login() {
     }
   }
 
-  // --- OAuth: GitHub (si tu l'utilises) ---
   async function signInWithGithub() {
     setErrorMsg("");
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "github",
-        options: { redirectTo }, // 👈 indispensable pour PKCE
+        options: { redirectTo },
       });
       if (error) throw error;
     } catch (e) {
@@ -44,7 +42,6 @@ export default function Login() {
     }
   }
 
-  // --- Email / mot de passe (optionnel) ---
   async function onSubmit(e) {
     e.preventDefault();
     setLoading(true);
@@ -65,7 +62,6 @@ export default function Login() {
       <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow">
         <h1 className="text-xl font-semibold mb-4 text-gray-900">Connexion</h1>
 
-        {/* BOUTONS OAUTH */}
         <div className="space-y-2 mb-4">
           <button
             onClick={signInWithGoogle}
@@ -73,7 +69,6 @@ export default function Login() {
           >
             Continuer avec Google
           </button>
-
           <button
             onClick={signInWithGithub}
             className="w-full rounded-md bg-gray-900 text-white py-2 text-sm font-medium hover:bg-gray-800 active:bg-black transition-colors"
@@ -91,7 +86,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* FORM EMAIL / MOT DE PASSE (facultatif) */}
         <form onSubmit={onSubmit} className="space-y-3">
           <input
             type="email"
@@ -101,7 +95,6 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-
           <input
             type="password"
             autoComplete="current-password"
@@ -110,7 +103,6 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-
           <button
             type="submit"
             disabled={loading}
@@ -120,17 +112,7 @@ export default function Login() {
           </button>
         </form>
 
-        {errorMsg && (
-          <p className="mt-3 text-sm text-red-600">{errorMsg}</p>
-        )}
-
-        <p className="mt-4 text-[11px] leading-relaxed text-gray-500">
-          Assure-toi d’avoir ajouté&nbsp;
-          <code className="px-1 py-0.5 bg-gray-100 rounded">
-            {`${window.location.origin}/auth/callback`}
-          </code>
-          &nbsp;dans <strong>Supabase → Authentication → URL Configuration → Redirect URLs</strong>.
-        </p>
+        {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
       </div>
     </div>
   );
