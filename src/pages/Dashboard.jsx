@@ -8,8 +8,8 @@ export default function Dashboard() {
         <h1 className="text-xl font-semibold">Ton dashboard</h1>
       ) : (
         <div>
-          <h1 className="text-xl font-semibold">Bienvenue sur OneTool 🎉</h1>
-          <p className="text-sm text-gray-600 mt-1">Tu n’es pas connecté.</p>
+          <h1 className="text-xl font-semibold">Dashboard</h1>
+          <p className="text-sm text-gray-600 mt-1">Ici, ton historique de création</p>
         </div>
       )}
     </main>
