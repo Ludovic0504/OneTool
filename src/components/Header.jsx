@@ -1,3 +1,4 @@
+// src/components/Header.jsx
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Circle, CircleDot } from "lucide-react";
@@ -9,54 +10,41 @@ export default function Header({ onOpenMenu }) {
   const [signingOut, setSigningOut] = useState(false);
 
   async function handleLogout() {
-    try {
-      setSigningOut(true);
-      await signOut?.();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSigningOut(false);
-    }
+    try { setSigningOut(true); await signOut?.(); }
+    finally { setSigningOut(false); }
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      {/* barre pleine largeur + safe area + container */}
-      <div className="safe-padded mx-auto max-w-screen-xl h-14 flex items-center gap-3">
-        {/* Gauche : Burger + Brand */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            aria-label="Ouvrir le menu"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenMenu?.();
-            }}
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100"
-          >
-            <Menu size={20} />
-          </button>
+    // full-bleed + collé en haut
+    <header className="sticky top-0 z-50 w-full border-b border-gray-700 bg-[#0f172a] text-gray-100 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-[#0f172a]/90">
+      {/* pas de max-w ici -> full width ; on garde juste la safe-area */}
+      <div className="safe-padded h-14 flex items-center gap-3">
+        {/* Gauche : burger collé + brand */}
+        <button
+          type="button"
+          aria-label="Ouvrir le menu"
+          onClick={() => onOpenMenu?.()}
+          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100"
+        >
+          <Menu size={20} />
+        </button>
 
-          <Link
-            to="/dashboard"
-            className="text-base sm:text-lg font-semibold select-none"
-          >
-            OneTool
-          </Link>
-        </div>
+        <Link to="/dashboard" className="text-base sm:text-lg font-semibold select-none">
+          OneTool
+        </Link>
 
         {/* Droite : statut + email + CTA */}
         <div className="ml-auto flex items-center gap-3">
-          {/* Statut */}
+          {/* Statut compact */}
           {loading ? (
-            <span className="text-xs text-gray-500">Chargement…</span>
+            <span className="text-xs text-gray-500">…</span>
           ) : session ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-green-100 text-green-700 px-2.5 py-1 text-xs font-medium">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 text-green-400 px-2 py-0.5 text-xs font-medium">
               <CircleDot className="w-3 h-3 text-green-500" />
               Connecté
             </span>
           ) : (
-            <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 text-gray-700 px-2.5 py-1 text-xs font-medium">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-600/30 text-gray-300 px-2 py-0.5 text-xs font-medium">
               <Circle className="w-3 h-3 text-gray-400" />
               Invité
             </span>
@@ -64,30 +52,27 @@ export default function Header({ onOpenMenu }) {
 
           {/* Email (sm+) */}
           {!loading && email && (
-            <span className="hidden sm:block text-sm text-gray-600">
-              {email}
-            </span>
+            <span className="hidden sm:block text-sm text-gray-600">{email}</span>
           )}
 
-          {/* CTA */}
-          {loading ? (
-            <span className="text-sm text-gray-400">…</span>
-          ) : session ? (
+          {/* CTA plus petit */}
+          {loading ? null : session ? (
             <button
               type="button"
               onClick={handleLogout}
               disabled={signingOut}
-              className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 active:bg-gray-100 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-gray-50 active:bg-gray-100 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-gray-300"
             >
               {signingOut ? "Déconnexion…" : "Se déconnecter"}
             </button>
           ) : (
             <Link
               to="/login"
-              className="inline-flex items-center rounded-xl bg-gray-900 text-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-gray-800 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="inline-flex items-center rounded-md bg-blue-600 text-white px-4 py-1.5 text-xs font-medium shadow-sm hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
             >
               Se connecter
             </Link>
+
           )}
         </div>
       </div>

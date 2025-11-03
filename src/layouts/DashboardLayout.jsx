@@ -8,7 +8,7 @@ export default function DashboardLayout() {
 
   return (
     // 1) dvh au lieu de h-screen + layout colonne robuste
-    <div className="min-h-dvh flex flex-col bg-gray-100">
+    <div className="min-h-dvh flex flex-col bg-[#f1f5f9] text-gray-800">
 
       {/* 2) Header hors flux de scroll + safe-area */}
       <div className="safe-padded shrink-0">
