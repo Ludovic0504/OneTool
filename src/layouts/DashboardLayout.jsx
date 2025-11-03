@@ -6,18 +6,17 @@ import { Outlet } from "react-router-dom";
 export default function DashboardLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  return (
-    <div className="min-h-dvh flex flex-col bg-[#f1f5f9]">
-      {/* Header full-bleed (aucun wrapper/padding autour) */}
-      <Header onOpenMenu={() => setMenuOpen(true)} />
+  <div className="min-h-dvh flex flex-col bg-[#f1f5f9]">
+  {/* Header collé au bord */}
+  <Header onOpenMenu={() => setMenuOpen(true)} />
 
-      <div className="flex-1 overflow-hidden">
-        <SidebarShell open={menuOpen} onCloseMenu={() => setMenuOpen(false)}>
-          <main className="safe-padded h-full overflow-y-auto">
-            <Outlet />
-          </main>
-        </SidebarShell>
-      </div>
-    </div>
-  );
+  {/* Contenu plein écran sans marges */}
+  <div className="flex-1 overflow-hidden">
+    <SidebarShell open={menuOpen} onCloseMenu={() => setMenuOpen(false)}>
+      <main className="h-full overflow-y-auto">
+        <Outlet />
+      </main>
+    </SidebarShell>
+  </div>
+</div>
 }
