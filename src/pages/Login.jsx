@@ -1,6 +1,6 @@
+// src/pages/Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// 👉 utilise le client unique
 import { getBrowserSupabase } from "@/lib/supabase/browser-client";
 
 export default function Login() {
@@ -10,137 +10,143 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mlLoading, setMlLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  const onSubmit = async (e) => {
+  const redirectTo = `${window.location.origin}/auth/callback`;
+
+  async function signInWithGoogle() {
+    setErrorMsg("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
+      if (error) throw error;
+    } catch (e) {
+      console.error("[Login] Google OAuth error:", e);
+      setErrorMsg(e?.message || "Erreur OAuth (Google)");
+    }
+  }
+
+  async function signInWithGithub() {
+    setErrorMsg("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: { redirectTo },
+      });
+      if (error) throw error;
+    } catch (e) {
+      console.error("[Login] GitHub OAuth error:", e);
+      setErrorMsg(e?.message || "Erreur OAuth (GitHub)");
+    }
+  }
+
+  async function onSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
-
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setErrorMsg(error.message);
-        return;
-      }
+      if (error) throw error;
       navigate("/dashboard", { replace: true });
-    } catch (err) {
-      setErrorMsg(err.message || "Erreur inconnue");
+    } catch (e) {
+      setErrorMsg(e?.message || "Erreur inconnue");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const signInWithGoogle = async () => {
+  // Magic Link
+  async function sendMagicLink() {
+    setLoading(true);
     setErrorMsg("");
+    setSuccessMsg("");
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
-      if (error) setErrorMsg(error.message);
-    } catch (err) {
-      setErrorMsg(err.message || "Erreur inconnue");
-    }
-  };
-
-    // ✅ Magic Link (NOUVEAU)
-  const onSendMagicLink = async () => {
-    setErrorMsg("");
-    setSent(false);
-    setMlLoading(true);
-    try {
-      const origin = import.meta.env.VITE_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${origin}/auth/callback` },
+        options: { emailRedirectTo: redirectTo },
       });
-      if (error) return setErrorMsg(error.message);
-      setSent(true);
-    } catch (err) {
-      setErrorMsg(err.message || "Erreur inconnue");
+      if (error) throw error;
+      setSuccessMsg("Lien magique envoyé ! Vérifie ta boîte mail 📩");
+    } catch (e) {
+      console.error("[Login] Magic link error:", e);
+      setErrorMsg(e?.message || "Erreur lors de l’envoi du lien magique");
     } finally {
-      setMlLoading(false);
+      setLoading(false);
     }
-  };
+  }
 
   return (
-  <div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 p-4">
-    <div className="w-full max-w-sm bg-white border rounded-xl p-6 shadow-sm">
-      <h1 className="text-lg font-semibold mb-4">Se connecter</h1>
+<div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 p-4">
+  <div className="w-full max-w-sm bg-white border rounded-xl p-6 shadow-sm">
+    <h1 className="text-lg font-semibold mb-4">Se connecter</h1>
 
-      {/* alertes */}
-      {errorMsg && (
-        <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
-          {errorMsg}
+        <div className="space-y-2 mb-4">
+          <button
+            onClick={signInWithGoogle}
+            className="w-full rounded-md bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-500 active:bg-blue-700 transition-colors"
+          >
+            Continuer avec Google
+          </button>
+          <button
+            onClick={signInWithGithub}
+            className="w-full rounded-md bg-gray-900 text-white py-2 text-sm font-medium hover:bg-gray-800 active:bg-black transition-colors"
+          >
+            Continuer avec GitHub
+          </button>
         </div>
-      )}
-      {sent && (
-        <div className="mb-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded p-2">
-          Lien envoyé ✅ — vérifie ta boîte mail
-        </div>
-      )}
 
-      {/* --- Formulaire email + mot de passe --- */}
-      <form onSubmit={onSubmit} className="space-y-3">
-        <div>
-          <label className="block text-sm mb-1" htmlFor="email">Email</label>
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-gray-500">ou</span>
+          </div>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-3">
           <input
-            id="email"
             type="email"
-            className="w-full border rounded px-3 py-2 outline-none focus:ring"
+            autoComplete="email"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm mb-1" htmlFor="password">Mot de passe</label>
           <input
-            id="password"
             type="password"
-            className="w-full border rounded px-3 py-2 outline-none focus:ring"
+            autoComplete="current-password"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
           />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-md bg-gray-900 text-white py-2 text-sm font-medium hover:bg-gray-800 disabled:opacity-60"
+          >
+            {loading ? "Connexion…" : "Se connecter"}
+          </button>
+        </form>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={sendMagicLink}
+            disabled={!email || loading}
+            className="text-sm text-blue-600 hover:underline disabled:opacity-50"
+          >
+            Magic link
+          </button>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded bg-black text-white py-2 disabled:opacity-60"
-        >
-          {loading ? "Connexion..." : "Se connecter"}
-        </button>
-      </form>
-
-      <div className="my-4 h-px bg-gray-200" />
-
-      {/* --- Bouton Magic Link (séparé) --- */}
-      <button
-        type="button"
-        onClick={onSendMagicLink}
-        disabled={!email || mlLoading}
-        className="w-full rounded border px-3 py-2"
-        title="Recevoir un lien de connexion par email"
-      >
-        {mlLoading ? "Envoi du lien..." : "Recevoir un lien magique"}
-      </button>
-
-      <div className="my-4 h-px bg-gray-200" />
-
-      {/* --- Bouton Google (séparé) --- */}
-      <button
-        type="button"
-        onClick={signInWithGoogle}
-        className="w-full rounded border px-3 py-2 hover:bg-gray-50"
-      >
-        Continuer avec Google
-      </button>
+        {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
+        {successMsg && <p className="mt-3 text-sm text-green-600">{successMsg}</p>}
+      </div>
     </div>
-  </div>
-);
+  );
 }
