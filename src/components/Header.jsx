@@ -23,7 +23,7 @@ export default function Header({ onOpenMenu }) {
           type="button"
           aria-label="Ouvrir le menu"
           onClick={() => onOpenMenu?.()}
-          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100"
+          className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm"
         >
           <Menu size={20} />
         </button>
