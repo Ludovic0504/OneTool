@@ -28,9 +28,9 @@ export default function Header({ onOpenMenu }) {
           <Menu size={20} />
         </button>
 
-        <Link to="/dashboard" className="text-base sm:text-lg font-semibold select-none">
+        <div to="/dashboard" className="text-base sm:text-lg font-semibold select-none">
           OneTool
-        </Link>
+        </div>
 
         {/* Droite : statut + email + CTA */}
         <div className="ml-auto flex items-center gap-3">
@@ -60,7 +60,7 @@ export default function Header({ onOpenMenu }) {
               type="button"
               onClick={handleLogout}
               disabled={signingOut}
-              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium !bg-red-600 !text-white hover:!bg-red-700 active:!bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition"
+              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium !bg-red-600 !text-white hover:!bg-red-700 active:!bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-400 shadow-sm"
             >
               {signingOut ? "Déconnexion…" : "Se déconnecter"}
             </button>

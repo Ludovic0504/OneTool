@@ -70,9 +70,8 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar desktop */}
+      {/* Sidebar desktop*/}
       <aside className="hidden md:block w-60 border-r bg-white">
-        <div className="p-4 font-semibold text-lg">OneTool</div>
         <nav className="flex flex-col gap-1 px-3">
           {links.map(([to, label]) => (
             <Item key={to} to={to}>{label}</Item>
@@ -97,7 +96,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
         aria-hidden={!open}
       >
         <div className="flex items-center justify-between p-4 border-b">
-          <span className="font-semibold text-lg">OneTool</span>
+          {/*<span className="font-semibold text-lg">OneTool</span>*/}
           <button
             onClick={() => onCloseMenu?.()}
             className="text-gray-500 hover:text-gray-700 text-xl"
