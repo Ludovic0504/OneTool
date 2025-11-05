@@ -1,69 +1,34 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { getBrowserSupabase } from "@/lib/supabase/browser-client";
-import { useAuth } from "@/context/AuthProvider";
-
-/**
- * Bouton de déconnexion très robuste.
- * - Appelle signOut() du contexte si dispo, sinon fallback direct Supabase.
- * - Nettoie les tokens locaux au cas où.
- * - Redirige proprement (vers /login par défaut) et peut déclencher un callback.
- */
-export default function LogoutButton({ className = "", to = "/login", onAfter }) {
-  const ctx = useAuth(); // { signOut?, supabase?, ... }
-  const supabase = getBrowserSupabase();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [busy, setBusy] = useState(false);
-
-  const clearLocalTokens = () => {
-    try {
-      // Supprime les tokens Supabase si jamais ils traînent
-      Object.keys(localStorage)
-        .filter((k) => k.startsWith("sb-") || k.includes("supabase"))
-        .forEach((k) => localStorage.removeItem(k));
-    } catch {}
-  };
+export default function LogoutButton({ className }) {
+  const [busy, setBusy] = React.useState(false);
 
   const handleLogout = async () => {
-    if (busy) return;
-    setBusy(true);
-
     try {
-      // 1) essayer via le contexte (si exposé)
-      if (ctx?.signOut) {
-        await ctx.signOut();
-      } else {
-        // 2) fallback direct
-        await supabase.auth.signOut();
-      }
-    } catch (e) {
-      // on continue quand même, pour forcer un état invité
-      // console.warn("signOut error:", e);
+      setBusy(true);
+      await supabase.auth.signOut();
+      // router.navigate('/login') ou équivalent
     } finally {
-      clearLocalTokens();
-      // callback optionnel (ex: fermer drawer)
-      if (onAfter) {
-        try { onAfter(); } catch {}
-      }
-      // Navigation : par défaut on va sur /login.
-      // Si tu veux rester sur place en mode invité, remplace la ligne suivante par:
-      // navigate(location.pathname + location.search, { replace: true });
-      navigate(to || "/login", { replace: true });
       setBusy(false);
     }
   };
 
   return (
     <button
-      type="button"
-      onClick={handleLogout}
-      disabled={busy}
-      className={
-        "rounded px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-60 " +
-        className
-      }
-    >
+  type="button"
+  onClick={handleLogout}
+  disabled={busy}
+  className={
+    (className ?? "") +
+    " appearance-none inline-flex items-center gap-2 rounded-md px-3 py-2 " +
+    " !bg-red-600 !text-white hover:!bg-red-700 active:!bg-red-800 " +
+    " disabled:opacity-50 disabled:cursor-not-allowed transition"
+  }
+>
+      {busy && (
+        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/>
+          <path d="M22 12a10 10 0 00-10-10" fill="currentColor"/>
+        </svg>
+      )}
       {busy ? "Déconnexion…" : "Se déconnecter"}
     </button>
   );
