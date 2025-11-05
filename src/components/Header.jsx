@@ -16,14 +16,19 @@ export default function Header({ onOpenMenu }) {
 
   return (
     // full-bleed + collé en haut
-    <header className={`sticky top-0 z-50 w-full border-b border-gray-700 text-gray-100 shadow-sm transition-all duration-300 ${open ? "backdrop-blur bg-[#0f172a]/70 supports-[backdrop-filter]:bg-[#0f172a]/50" : "bg-[#0f172a] supports-[backdrop-filter]:bg-[#0f172a]/90"}`}>
+    <header className="sticky top-0 z-50 w-full border-b border-gray-700 bg-[#0f172a] text-gray-100 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-[#0f172a]/90">
+        {open && (
+          <div
+            className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm"
+            onClick={onOpenMenu}
+          />
+        )}
+
       <div className="pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-14 flex items-center gap-3">
         {/* Gauche : burger collé + brand */}
         <button
-          type="button"
-          aria-label="Ouvrir le menu"
-          onClick={() => onOpenMenu?.()}
-          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100"
+          className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm"
+          onClick={closeMenu} // ou ton handler existant
         >
           <Menu size={20} />
         </button>
