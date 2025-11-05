@@ -64,7 +64,7 @@ export default function Login() {
   };
 
   return (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+  <div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 p-4">
     <div className="w-full max-w-sm bg-white border rounded-xl p-6 shadow-sm">
       <h1 className="text-lg font-semibold mb-4">Se connecter</h1>
 
