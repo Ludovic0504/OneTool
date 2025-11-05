@@ -20,13 +20,24 @@ export default function Header({ onOpenMenu }) {
       <div className="pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-14 flex items-center gap-3">
         {/* Gauche : burger collé + brand */}
         <button
-          type="button"
-          aria-label="Ouvrir le menu"
-          onClick={() => onOpenMenu?.()}
-          className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm"
-        >
-          <Menu size={20} />
-        </button>
+  type="button"
+  aria-label="Ouvrir le menu"
+  onClick={() => {
+    // Ajoute un léger flou sur l’arrière-plan pendant l’ouverture
+    document.body.classList.add("menu-open");
+    onOpenMenu?.();
+    // Retire le flou quand le menu est fermé (sur clic overlay)
+    setTimeout(() => {
+      const observer = new MutationObserver(() => {
+        if (!document.body.classList.contains("menu-open")) observer.disconnect();
+      });
+      observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    }, 0);
+  }}
+  className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100"
+>
+  <Menu size={20} />
+</button>
 
         <div to="/dashboard" className="text-base sm:text-lg font-semibold select-none">
           OneTool

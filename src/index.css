@@ -10,3 +10,12 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   padding-top:   max(0.75rem, env(safe-area-inset-top));
   padding-bottom:max(0.75rem, env(safe-area-inset-bottom));
   }
+
+  .menu-open::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 40;
+}
