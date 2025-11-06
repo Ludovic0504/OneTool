@@ -35,11 +35,28 @@ function VEO3Generator() {
 
   const disabled = useMemo(() => idea.trim().length < 8, [idea]);
 
-  const generate = () => {
-    const ctx = analyzeIdea(idea);
-    const prompt = buildVEO3RichPrompt(ctx);
-    setOutput(prompt);
+  const [loading, setLoading] = useState(false);
+
+  const generate = async () => {
+    if (idea.trim().length < 8) return;
+    setLoading(true);
+    setOutput("");
+    try {
+    const r = await fetch("/api/veo3", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idea }),
+    });
+       data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Erreur API");
+      setOutput(data.prompt);
+    } catch (err) {
+      setOutput("Erreur : " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const copy = async () => {
     try {
@@ -70,11 +87,12 @@ function VEO3Generator() {
       <div className="flex gap-2">
         <button
           onClick={generate}
-          disabled={disabled}
+          disabled={disabled || loading}
           className="bg-black text-white rounded px-4 py-2 disabled:opacity-60"
         >
-          Générer
+          {loading ? "Génération..." : "Générer"}
         </button>
+
         <button
           onClick={() => { setIdea(""); setOutput(""); }}
           className="border rounded px-4 py-2 hover:bg-gray-50"
