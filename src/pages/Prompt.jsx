@@ -38,24 +38,55 @@ function VEO3Generator() {
   const [loading, setLoading] = useState(false);
 
   const generate = async () => {
-    if (idea.trim().length < 8) return;
-    setLoading(true);
-    setOutput("");
-    try {
-    const r = await fetch("/api/veo3", {
+  if (idea.trim().length < 8 || loading) return;
+  setLoading(true);
+  setOutput("");
+
+  // En dev local Vite: tape directement l’URL Vercel si besoin
+  const API_BASE = import.meta.env.DEV ? '' : 'https://onetool-three.vercel.app';
+
+  try {
+    const response = await fetch(`${API_BASE}/api/veo3-stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idea }),
     });
-       data = await r.json();
-      if (!r.ok) throw new Error(data.error || "Erreur API");
-      setOutput(data.prompt);
-    } catch (err) {
-      setOutput("Erreur : " + err.message);
-    } finally {
+
+    if (!response.ok || !response.body) {
+      setOutput("Erreur : impossible de générer le prompt");
       setLoading(false);
+      return;
     }
-  };
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      // Chaque "event" est au format: "data: ...\n\n"
+      const parts = chunk.split("\n\n");
+      for (const part of parts) {
+        const line = part.replace(/^data:\s*/, "");
+        if (!line) continue;
+        if (line === "[END]") { reader.cancel(); break; }
+        if (line.startsWith("[ERROR]")) {
+          setOutput(prev => prev + `\n\nErreur serveur: ${line.slice(7).trim()}`);
+          reader.cancel();
+          break;
+        }
+        setOutput(prev => prev + line);
+      }
+    }
+  } catch (e) {
+    setOutput("Erreur réseau: " + (e?.message || String(e)));
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   const copy = async () => {
