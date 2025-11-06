@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { getBrowserSupabase } from "@/lib/supabase/browser-client";
+import { getBrowserSupabase, getRedirectTo } from "@/lib/supabase/browser-client";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
-  const supabase = getBrowserSupabase();
+  // ⛔️ (on ne crée plus le client ici pour pouvoir choisir remember à la soumission)
+  // const supabase = getBrowserSupabase();
+  const redirectTo = useMemo(() => getRedirectTo(), []);
 
   const [mode, setMode] = useState("signin"); // "signin" | "signup"
   const [email, setEmail] = useState("");
@@ -17,6 +19,9 @@ export default function Login() {
   const [sent, setSent] = useState(false);
   const [infoMsg, setInfoMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [showPwd, setShowPwd] = useState(false);       // NEW: toggle afficher/masquer
+  const [remember, setRemember] = useState(true);      // NEW: rester connecté
 
   const confirmedBanner = useMemo(
     () => (params.get("confirmed") === "1" ? "Adresse confirmée ✅ Vous pouvez vous connecter." : null),
@@ -37,6 +42,9 @@ export default function Login() {
     setErrorMsg("");
     setInfoMsg(null);
 
+    // NEW: crée le client selon la case "Rester connecté"
+    const supabase = getBrowserSupabase({ remember });
+
     try {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -50,11 +58,10 @@ export default function Login() {
         }
         navigate(next, { replace: true });
       } else {
-        const origin = import.meta.env.VITE_SITE_URL || window.location.origin;
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${origin}/auth/callback` },
+          options: { emailRedirectTo: redirectTo },
         });
         if (error) return setErrorMsg(error.message);
         if (data.user && !data.session) {
@@ -73,11 +80,12 @@ export default function Login() {
     setErrorMsg("");
     setSent(false);
     setMlLoading(true);
+    // NEW: garde le même choix de persistance pour le flux magic link
+    const supabase = getBrowserSupabase({ remember });
     try {
-      const origin = import.meta.env.VITE_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${origin}/auth/callback` },
+        options: { emailRedirectTo: redirectTo },
       });
       if (error) return setErrorMsg(error.message);
       setSent(true);
@@ -90,8 +98,13 @@ export default function Login() {
 
   const signInWithGoogle = async () => {
     setErrorMsg("");
+    // NEW: idem pour OAuth
+    const supabase = getBrowserSupabase({ remember });
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
       if (error) setErrorMsg(error.message);
     } catch (err) {
       setErrorMsg(err?.message || "Erreur inconnue");
@@ -134,16 +147,38 @@ export default function Login() {
             <label className="block text-sm mb-1" htmlFor="password">
               {mode === "signin" ? "Mot de passe" : "Choisis un mot de passe"}
             </label>
-            <input
-              id="password"
-              type="password"
-              className="w-full border rounded px-3 py-2 outline-none focus:ring"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            />
+
+            {/* NEW: conteneur + bouton Afficher/Masquer (changement minimal autour de l'input) */}
+            <div className="relative">
+              <input
+                id="password"
+                type={showPwd ? "text" : "password"}           // NEW
+                className="w-full border rounded px-3 py-2 outline-none focus:ring pr-20" // NEW: pr-20 pour laisser la place au bouton
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd(v => !v)}             // NEW
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-600"
+                aria-label={showPwd ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                {showPwd ? "Masquer" : "Afficher"}
+              </button>
+            </div>
           </div>
+
+          {/* NEW: case Rester connecté */}
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+            />
+            Rester connecté
+          </label>
 
           <button
             type="submit"

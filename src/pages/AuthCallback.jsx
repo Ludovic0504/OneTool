@@ -9,21 +9,25 @@ export default function AuthCallback() {
   useEffect(() => {
     (async () => {
       const supabase = getBrowserSupabase();
-      const params = new URLSearchParams(location.search);
-      const type = params.get("type"); // "signup" | "recovery" | "magiclink" | null
 
-      const { error } = await supabase.auth.exchangeCodeForSession();
+      // Essaye d’échanger le code de confirmation contre une session
+      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+
       if (error) {
+        console.error("Erreur d’échange de code :", error);
         navigate("/login?error=callback", { replace: true });
         return;
       }
 
+      const params = new URLSearchParams(location.search);
+      const type = params.get("type"); // "signup" | "recovery" | "magiclink" | "oauth" | null
+
       if (type === "signup") {
-        // On veut forcer l'UX "confirmer puis se connecter manuellement"
+        // Pour forcer la confirmation manuelle après inscription
         await supabase.auth.signOut();
         navigate("/login?confirmed=1", { replace: true });
       } else {
-        // Cas magic link / recovery / OAuth
+        // Autres cas : lien magique, recovery, OAuth
         navigate("/dashboard", { replace: true });
       }
     })();
