@@ -64,21 +64,8 @@ function VEO3Generator() {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
       const chunk = decoder.decode(value, { stream: true });
-      // Chaque "event" est au format: "data: ...\n\n"
-      const parts = chunk.split("\n\n");
-      for (const part of parts) {
-        const line = part.replace(/^data:\s*/, "");
-        if (!line) continue;
-        if (line === "[END]") { reader.cancel(); break; }
-        if (line.startsWith("[ERROR]")) {
-          setOutput(prev => prev + `\n\nErreur serveur: ${line.slice(7).trim()}`);
-          reader.cancel();
-          break;
-        }
-        setOutput(prev => prev + line);
-      }
+      setOutput(prev => prev + chunk); // on append tel quel
     }
   } catch (e) {
     setOutput("Erreur réseau: " + (e?.message || String(e)));
