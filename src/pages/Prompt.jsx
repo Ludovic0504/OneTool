@@ -1,8 +1,34 @@
 // src/pages/Prompt.jsx
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 
+/* ----------------- utils historique (localStorage) ----------------- */
+const LS_KEY = "history_v2"; // commun si tu veux réutiliser plus tard
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+function saveHistory(items) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(items));
+  } catch {}
+}
+function addHistoryEntry(entry) {
+  // entry: {kind:"prompt", input, output, model, createdAt, id}
+  const items = loadHistory();
+  const withNew = [{ ...entry, pinned: false }, ...items];
+  saveHistory(withNew);
+}
+function getPromptHistory() {
+  return loadHistory().filter((i) => i.kind === "prompt");
+}
+
+/* ---------------- Page ---------------- */
 export default function PromptAssistant() {
-  const [tab, setTab] = useState("veo3"); // 'veo3' | 'sora2'
+  const [tab, setTab] = useState("veo3"); // 'veo3' | 'sora2' | 'history'
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-4">
@@ -10,9 +36,17 @@ export default function PromptAssistant() {
         <div className="inline-flex rounded-lg overflow-hidden border">
           <TabButton active={tab === "veo3"} onClick={() => setTab("veo3")}>VEO3</TabButton>
           <TabButton active={tab === "sora2"} onClick={() => setTab("sora2")}>Sora2</TabButton>
+          <TabButton active={tab === "history"} onClick={() => setTab("history")}>📜 Historique</TabButton>
         </div>
       </div>
-      {tab === "veo3" ? <VEO3Generator /> : <Sora2Placeholder />}
+
+      {tab === "veo3" ? (
+        <VEO3Generator />
+      ) : tab === "sora2" ? (
+        <Sora2Placeholder />
+      ) : (
+        <PromptHistory />
+      )}
     </div>
   );
 }
@@ -21,7 +55,10 @@ function TabButton({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={"px-4 py-2 text-sm " + (active ? "bg-black text-white" : "bg-white hover:bg-gray-50")}
+      className={
+        "px-4 py-2 text-sm " +
+        (active ? "bg-black text-white" : "bg-white hover:bg-gray-50")
+      }
     >
       {children}
     </button>
@@ -36,6 +73,19 @@ function VEO3Generator() {
   const [loading, setLoading] = useState(false);
   const abortRef = useRef(null);
 
+  // pour recharger un item depuis Historique
+  useEffect(() => {
+    // on écoute un évent “recharge” simple via customEvent
+    function onLoadFromHistory(e) {
+      const { input, output } = e.detail || {};
+      if (input != null) setIdea(input);
+      if (output != null) setOutput(output);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    window.addEventListener("onetool:prompt:load", onLoadFromHistory);
+    return () => window.removeEventListener("onetool:prompt:load", onLoadFromHistory);
+  }, []);
+
   const generate = async () => {
     if (idea.trim().length < 8 || loading) return;
     setLoading(true);
@@ -48,6 +98,9 @@ function VEO3Generator() {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
+    // on bufferise pour sauvegarder à la fin
+    let finalOutput = "";
+
     try {
       const res = await fetch(`${API_BASE}/api/veo3-stream`, {
         method: "POST",
@@ -58,7 +111,8 @@ function VEO3Generator() {
 
       if (!res.ok || !res.body) {
         const text = await res.text().catch(() => "");
-        setOutput(`⚠️ Erreur serveur : ${text || "impossible de générer le prompt"}`);
+        const err = `⚠️ Erreur serveur : ${text || "impossible de générer le prompt"}`;
+        setOutput(err);
         return;
       }
 
@@ -87,6 +141,19 @@ function VEO3Generator() {
 
               if (data === "[DONE]") {
                 try { await reader.cancel(); } catch {}
+                // ✅ Sauvegarde dans l'historique (PROMPT uniquement)
+                if (finalOutput.trim()) {
+                  addHistoryEntry({
+                    id: (crypto.randomUUID && crypto.randomUUID()) || String(Date.now()),
+                    kind: "prompt",
+                    input: idea,
+                    output: finalOutput,
+                    model: "veo3",
+                    createdAt: new Date().toISOString(),
+                  });
+                }
+                // notifier la liste Historique (pour refresh)
+                window.dispatchEvent(new Event("onetool:history:changed"));
                 return;
               }
 
@@ -95,18 +162,34 @@ function VEO3Generator() {
                 const delta =
                   json?.choices?.[0]?.delta?.content ??
                   json?.choices?.[0]?.text ?? "";
-                if (delta) setOutput(prev => prev + delta);
+                if (delta) {
+                  setOutput((prev) => prev + delta);
+                  finalOutput += delta;
+                }
               } catch {
-                // Si ce n'est pas du JSON, on l'ajoute tel quel
-                setOutput(prev => prev + data);
+                setOutput((prev) => prev + data);
+                finalOutput += data;
               }
             }
           }
         }
       }
+
+      // Si le flux s'est fini proprement sans [DONE]
+      if (finalOutput.trim()) {
+        addHistoryEntry({
+          id: (crypto.randomUUID && crypto.randomUUID()) || String(Date.now()),
+          kind: "prompt",
+          input: idea,
+          output: finalOutput,
+          model: "veo3",
+          createdAt: new Date().toISOString(),
+        });
+        window.dispatchEvent(new Event("onetool:history:changed"));
+      }
     } catch (e) {
       if (e && e.name === "AbortError") {
-        setOutput(p => p || "⏹️ Génération stoppée");
+        setOutput((p) => p || "⏹️ Génération stoppée");
       } else {
         setOutput("Erreur réseau : " + (e?.message || String(e)));
       }
@@ -180,8 +263,103 @@ function VEO3Generator() {
   );
 }
 
+/* ---------------- Historique local à la page Prompt ---------------- */
+function PromptHistory() {
+  const [items, setItems] = useState(() => getPromptHistory());
+  const [q, setQ] = useState("");
 
-/* ---------------- Logic ---------------- */
+  useEffect(() => {
+    function refresh() {
+      setItems(getPromptHistory());
+    }
+    window.addEventListener("onetool:history:changed", refresh);
+    return () => window.removeEventListener("onetool:history:changed", refresh);
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!q.trim()) return items;
+    const t = q.toLowerCase();
+    return items.filter(
+      (i) =>
+        (i.input || "").toLowerCase().includes(t) ||
+        (i.output || "").toLowerCase().includes(t)
+    );
+  }, [items, q]);
+
+  const clearAll = () => {
+    const all = loadHistory();
+    const keep = all.filter((i) => i.kind !== "prompt" || i.pinned); // garde épinglés potentiels
+    saveHistory(keep);
+    setItems(getPromptHistory());
+  };
+
+  const loadIntoEditor = (i) => {
+    // on envoie l’item au générateur via un CustomEvent
+    window.dispatchEvent(new CustomEvent("onetool:prompt:load", { detail: { input: i.input, output: i.output } }));
+    alert("Chargé dans l’éditeur ✅ (onglet VEO3)");
+  };
+
+  const removeOne = (id) => {
+    const all = loadHistory();
+    saveHistory(all.filter((i) => i.id !== id));
+    setItems(getPromptHistory());
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Rechercher…"
+          className="w-full border rounded-xl px-3 py-2 outline-none"
+        />
+        <button
+          onClick={clearAll}
+          className="text-xs px-3 py-2 rounded-xl border hover:bg-gray-50"
+          title="Effacer l'historique des prompts"
+        >
+          Nettoyer
+        </button>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-sm text-gray-500">Aucun prompt enregistré pour l’instant.</div>
+      ) : (
+        <ul className="divide-y">
+          {filtered.map((i) => (
+            <li key={i.id} className="py-2">
+              <div className="flex items-start justify-between gap-2">
+                <button
+                  onClick={() => loadIntoEditor(i)}
+                  className="text-left"
+                  title="Charger dans l’éditeur"
+                >
+                  <div className="text-sm font-medium line-clamp-1">
+                    {(i.output || i.input || "Sans titre").slice(0, 100)}
+                    {(i.output || i.input || "").length > 100 ? "…" : ""}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(i.createdAt).toLocaleString()} · {i.model?.toUpperCase?.()}
+                  </div>
+                </button>
+                <button
+                  onClick={() => removeOne(i.id)}
+                  className="text-xs px-2 py-1 rounded bg-red-100 hover:bg-red-200"
+                  title="Supprimer"
+                >
+                  Suppr.
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Logic (ton code existant) ---------------- */
 
 // Transforme 2–3 lignes en un contexte "riche"
 function analyzeIdea(raw) {
@@ -289,7 +467,7 @@ function buildVEO3RichPrompt(ctx) {
   if (ctx.environment.includes("urban") || ctx.environment === "urban street") {
     bits.push(
       `A ${ctx.subject} walks through a city street ${ctx.night ? "at night" : "in the open air"}, holding a small camera close to the face`,
-      `rain beads on the lens and the pavement shimmers` // visuels propres au vlog
+      `rain beads on the lens and the pavement shimmers`
     );
   }
   if (ctx.environment.includes("fast-food")) {
@@ -316,7 +494,6 @@ function buildVEO3RichPrompt(ctx) {
       `the ${ctx.subject} films while walking along the shoreline`
     );
   }
-  // défaut si pas assez décrit
   if (bits.length < 2) {
     bits.push(
       `the ${ctx.subject} films a chaotic vlog while moving`,
@@ -324,18 +501,14 @@ function buildVEO3RichPrompt(ctx) {
     );
   }
 
-  const sceneParagraph =
-    `Scene:\n` +
-    `${capitalize(joinSentences(bits))}.\n`;
+  const sceneParagraph = `Scene:\n${capitalize(joinSentences(bits))}.\n`;
 
-  // Sections standard
   const style = `Style:\n${ctx.style}.`;
   const camera = `Camera:\n${ctx.camera}${ctx.addressing.includes("camera") ? ", frequent eye contact with the lens" : ""}.`;
   const lighting = `Lighting:\n${ctx.lighting}.`;
   const environment = `Environment:\n${ctx.environment}${ctx.rainy ? ", puddles and reflections" : ""}.`;
   const tone = `Tone:\n${ctx.tone}.`;
 
-  // Important (rappels + action claire + destinataire)
   const important = [
     "Important:",
     `- Clearly describe the action (e.g., "the character walks towards the camera"): ${ctx.action}`,
@@ -344,7 +517,6 @@ function buildVEO3RichPrompt(ctx) {
     `- No exclamation marks and no question marks`,
   ].join("\n");
 
-  // Dialogues FR (générés à partir de l’idée, neutres, sans ! ni ?)
   const dialogues = buildFrenchDialog(ctx);
 
   return [
@@ -363,12 +535,11 @@ function buildVEO3RichPrompt(ctx) {
     "",
     important,
     "",
-    `Dialogue (in French):\n${dialogues}`
+    `Dialogue (in French):\n${dialogues}`,
   ].join("\n");
 }
 
 function buildFrenchDialog(ctx) {
-  // Mini générateur de répliques FR “naturelles”, sans ! ni ?
   const lines = [];
   if (ctx.night && ctx.rainy) {
     lines.push("(il parle vers la caméra, souffle court)", "J avance sous la pluie", "Je voulais juste garder une trace de ce moment");
@@ -393,7 +564,6 @@ function buildFrenchDialog(ctx) {
     lines.push("(il observe l horizon)", "Le vent porte l odeur du sel", "Je respire et je continue");
   }
 
-  // Nettoyage: pas de ! ni ? et pas de ponctuation forte
   return lines.map(l => l.replace(/[!?]/g, "")).map(l => `- ${l}`).join("\n");
 }
 
