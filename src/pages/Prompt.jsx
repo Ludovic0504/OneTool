@@ -1,9 +1,5 @@
 // src/pages/Prompt.jsx
-import { useMemo, useState } from "react";
 import { useMemo, useState, useRef } from "react";
-
-const abortRef = useRef(null);
-
 
 export default function PromptAssistant() {
   const [tab, setTab] = useState("veo3"); // 'veo3' | 'sora2'
@@ -36,10 +32,11 @@ function TabButton({ active, onClick, children }) {
 function VEO3Generator() {
   const [idea, setIdea] = useState("");
   const [output, setOutput] = useState("");
-
   const disabled = useMemo(() => idea.trim().length < 8, [idea]);
-
   const [loading, setLoading] = useState(false);
+
+  const abortRef = useRef(null);
+
 
   const generate = async () => {
   if (idea.trim().length < 8 || loading) return;
