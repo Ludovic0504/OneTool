@@ -34,91 +34,87 @@ function VEO3Generator() {
   const [output, setOutput] = useState("");
   const disabled = useMemo(() => idea.trim().length < 8, [idea]);
   const [loading, setLoading] = useState(false);
-
   const abortRef = useRef(null);
 
-
   const generate = async () => {
-  if (idea.trim().length < 8 || loading) return;
-  setLoading(true);
-  setOutput("");
+    if (idea.trim().length < 8 || loading) return;
+    setLoading(true);
+    setOutput("");
 
-  // URL relative : front et API sur le même domaine Vercel
-  const API_BASE = "";
+    const API_BASE = "";
 
-  // stoppe un éventuel flux en cours
-  if (abortRef.current) abortRef.current.abort();
-  const ctrl = new AbortController();
-  abortRef.current = ctrl;
+    // Stoppe un flux en cours si besoin
+    if (abortRef.current) abortRef.current.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
 
-  try {
-    const res = await fetch(`${API_BASE}/api/veo3-stream`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idea }),
-      signal: ctrl.signal,
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/veo3-stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea }),
+        signal: ctrl.signal,
+      });
 
-    if (!res.ok || !res.body) {
-      const text = await res.text().catch(() => "");
-      setOutput(`⚠️ Erreur serveur : ${text || "impossible de générer le prompt"}`);
-      return;
-    }
+      if (!res.ok || !res.body) {
+        const text = await res.text().catch(() => "");
+        setOutput(`⚠️ Erreur serveur : ${text || "impossible de générer le prompt"}`);
+        return;
+      }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, { stream: true });
 
-      // Les messages SSE sont séparés par une ligne vide
-      const parts = buffer.split("\n\n");
-      buffer = parts.pop() ?? "";
+        // SSE: messages séparés par une ligne vide
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? "";
 
-      for (const chunk of parts) {
-        const lines = chunk.split("\n");
-        for (const raw of lines) {
-          const line = raw.trim();
-          if (!line || line.startsWith(":")) continue;
+        for (const chunk of parts) {
+          const lines = chunk.split("\n");
+          for (const raw of lines) {
+            const line = raw.trim();
+            if (!line || line.startsWith(":")) continue;
 
-          if (line.startsWith("data:")) {
-            const data = line.slice(5).trim();
+            if (line.startsWith("data:")) {
+              const data = line.slice(5).trim();
 
-            if (data === "[DONE]") {
-              // termine proprement la lecture et quitte la fonction
-              try { await reader.cancel(); } catch (_e) {}
-              return;
-            }
+              if (data === "[DONE]") {
+                try { await reader.cancel(); } catch {}
+                return;
+              }
 
-            // token JSON (OpenAI) ou texte brut
-            try {
-              const json = JSON.parse(data);
-              const delta =
-                json?.choices?.[0]?.delta?.content ??
-                json?.choices?.[0]?.text ?? "";
-              if (delta) setOutput(prev => prev + delta);
-            } catch (_e) {
-              setOutput(prev => prev + data);
+              try {
+                const json = JSON.parse(data);
+                const delta =
+                  json?.choices?.[0]?.delta?.content ??
+                  json?.choices?.[0]?.text ?? "";
+                if (delta) setOutput(prev => prev + delta);
+              } catch {
+                // Si ce n'est pas du JSON, on l'ajoute tel quel
+                setOutput(prev => prev + data);
+              }
             }
           }
         }
       }
+    } catch (e) {
+      if (e && e.name === "AbortError") {
+        setOutput(p => p || "⏹️ Génération stoppée");
+      } else {
+        setOutput("Erreur réseau : " + (e?.message || String(e)));
+      }
+    } finally {
+      setLoading(false);
+      abortRef.current = null;
     }
-  } catch (e) {
-    if (e && e.name === "AbortError") {
-      setOutput(p => p || "⏹️ Génération stoppée");
-    } else {
-      setOutput("Erreur réseau : " + (e?.message || String(e)));
-    }
-  } finally {
-    setLoading(false);
-    abortRef.current = null;
-  }
-};
+  };
 
   const copy = async () => {
     try {
@@ -133,7 +129,7 @@ function VEO3Generator() {
     <div className="space-y-4">
       <p className="text-sm text-gray-600">
         Décris ton idée en 2–3 lignes. Le générateur produit un prompt VEO3 détaillé
-        comme dans ta capture 2 : scène en anglais, sections, et dialogues en français.
+        (scène en anglais, sections, dialogues en français).
       </p>
 
       <div>
@@ -161,6 +157,7 @@ function VEO3Generator() {
         >
           Réinitialiser
         </button>
+      </div>
 
       <div>
         <label className="block text-sm font-medium mb-1">Prompt (VEO3)</label>
@@ -182,6 +179,7 @@ function VEO3Generator() {
     </div>
   );
 }
+
 
 /* ---------------- Logic ---------------- */
 
