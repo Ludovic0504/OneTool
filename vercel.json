@@ -1,11 +1,1 @@
-{
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/onetool-functions/api/$1" },
-    { "source": "/(.*)", "destination": "/" }
-  ],
-  "functions": {
-    "onetool-functions/api/**/*.ts": {
-      "runtime": "nodejs20.x"
-    }
-  }
-}
+{ "rewrites": [ { "source": "/(.*)", "destination": "/" } ] }
