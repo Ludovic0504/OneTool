@@ -1,5 +1,9 @@
 // src/pages/Prompt.jsx
 import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
+
+const abortRef = useRef(null);
+
 
 export default function PromptAssistant() {
   const [tab, setTab] = useState("veo3"); // 'veo3' | 'sora2'
@@ -42,33 +46,68 @@ function VEO3Generator() {
   setLoading(true);
   setOutput("");
 
-  // En dev local Vite: tape directement l’URL Vercel si besoin
-  const API_BASE = import.meta.env.DEV ? '' : 'https://onetool-three.vercel.app';
+  const API_BASE = import.meta.env.DEV ? "" : "https://onetool-three.vercel.app";
+
+  // Permet de stopper un flux en cours
+  abortRef.current?.abort();
+  abortRef.current = new AbortController();
 
   try {
-    const response = await fetch(`${API_BASE}/api/veo3-stream`, {
+    const res = await fetch(`${API_BASE}/api/veo3-stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idea }),
+      signal: abortRef.current.signal,
     });
 
-    if (!response.ok || !response.body) {
-      setOutput("Erreur : impossible de générer le prompt");
+    if (!res.ok || !res.body) {
+      const text = await res.text().catch(() => "");
+      setOutput(`⚠️ Erreur serveur : ${text || "impossible de générer le prompt"}`);
       setLoading(false);
       return;
     }
 
-    const reader = response.body.getReader();
+    const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
+    let buffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      setOutput(prev => prev + chunk); // on append tel quel
+
+      buffer += decoder.decode(value, { stream: true });
+
+      let idx;
+      while ((idx = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, idx).trim();
+        buffer = buffer.slice(idx + 1);
+
+        if (!line || line.startsWith(":")) continue; // ignore les keep-alive
+
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") {
+            reader.cancel().catch(() => {});
+            break;
+          }
+          try {
+            const json = JSON.parse(data);
+            const delta =
+              json?.choices?.[0]?.delta?.content ??
+              json?.choices?.[0]?.text ?? "";
+            if (delta) setOutput((prev) => prev + delta);
+          } catch {
+            // ignore les lignes non-JSON
+          }
+        }
+      }
     }
   } catch (e) {
-    setOutput("Erreur réseau: " + (e?.message || String(e)));
+    if (e?.name === "AbortError") {
+      setOutput((p) => p || "⏹️ Génération stoppée");
+    } else {
+      setOutput("Erreur réseau : " + (e?.message || String(e)));
+    }
   } finally {
     setLoading(false);
   }
