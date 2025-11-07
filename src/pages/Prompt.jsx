@@ -43,24 +43,25 @@ function VEO3Generator() {
   setLoading(true);
   setOutput("");
 
-  const API_BASE = ""; // toujours relatif en prod Vercel
+  // URL relative : front et API sur le même domaine Vercel
+  const API_BASE = "";
 
-  // Permet de stopper un flux en cours
-  abortRef.current?.abort();
-  abortRef.current = new AbortController();
+  // stoppe un éventuel flux en cours
+  if (abortRef.current) abortRef.current.abort();
+  const ctrl = new AbortController();
+  abortRef.current = ctrl;
 
   try {
     const res = await fetch(`${API_BASE}/api/veo3-stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idea }),
-      signal: abortRef.current.signal,
+      signal: ctrl.signal,
     });
 
     if (!res.ok || !res.body) {
       const text = await res.text().catch(() => "");
       setOutput(`⚠️ Erreur serveur : ${text || "impossible de générer le prompt"}`);
-      setLoading(false);
       return;
     }
 
@@ -74,43 +75,50 @@ function VEO3Generator() {
 
       buffer += decoder.decode(value, { stream: true });
 
+      // Les messages SSE sont séparés par une ligne vide
       const parts = buffer.split("\n\n");
       buffer = parts.pop() ?? "";
+
       for (const chunk of parts) {
         const lines = chunk.split("\n");
-        for (const line of lines) {
+        for (const raw of lines) {
           const line = raw.trim();
-          if (!line || line.startsWith(":")) continue; // ignore les keep-alive
-          if (line.startsWith("data: ")) {
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") {
-            try { await reader.cancel(); } catch {}
-            return; // on sort proprement
-          }
-          try {
-            const json = JSON.parse(data);
-            const delta =
-              json?.choices?.[0]?.delta?.content ??
-              json?.choices?.[0]?.text ?? "";
-            if (delta) setOutput((prev) => prev + delta);
-          } catch {
-            // ignore les lignes non-JSON
+          if (!line || line.startsWith(":")) continue;
+
+          if (line.startsWith("data:")) {
+            const data = line.slice(5).trim();
+
+            if (data === "[DONE]") {
+              // termine proprement la lecture et quitte la fonction
+              try { await reader.cancel(); } catch (_e) {}
+              return;
+            }
+
+            // token JSON (OpenAI) ou texte brut
+            try {
+              const json = JSON.parse(data);
+              const delta =
+                json?.choices?.[0]?.delta?.content ??
+                json?.choices?.[0]?.text ?? "";
+              if (delta) setOutput(prev => prev + delta);
+            } catch (_e) {
+              setOutput(prev => prev + data);
+            }
           }
         }
       }
     }
   } catch (e) {
-    if (e?.name === "AbortError") {
-      setOutput((p) => p || "⏹️ Génération stoppée");
+    if (e && e.name === "AbortError") {
+      setOutput(p => p || "⏹️ Génération stoppée");
     } else {
       setOutput("Erreur réseau : " + (e?.message || String(e)));
     }
   } finally {
     setLoading(false);
+    abortRef.current = null;
   }
 };
-
-
 
   const copy = async () => {
     try {
@@ -153,7 +161,6 @@ function VEO3Generator() {
         >
           Réinitialiser
         </button>
-      </div>
 
       <div>
         <label className="block text-sm font-medium mb-1">Prompt (VEO3)</label>
