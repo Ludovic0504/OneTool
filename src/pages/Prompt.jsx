@@ -43,7 +43,7 @@ function VEO3Generator() {
   setLoading(true);
   setOutput("");
 
-  const API_BASE = import.meta.env.DEV ? "" : "https://onetool-three.vercel.app";
+  const API_BASE = ""; // toujours relatif en prod Vercel
 
   // Permet de stopper un flux en cours
   abortRef.current?.abort();
@@ -74,18 +74,18 @@ function VEO3Generator() {
 
       buffer += decoder.decode(value, { stream: true });
 
-      let idx;
-      while ((idx = buffer.indexOf("\n")) >= 0) {
-        const line = buffer.slice(0, idx).trim();
-        buffer = buffer.slice(idx + 1);
-
-        if (!line || line.startsWith(":")) continue; // ignore les keep-alive
-
-        if (line.startsWith("data: ")) {
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop() ?? "";
+      for (const chunk of parts) {
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          const line = raw.trim();
+          if (!line || line.startsWith(":")) continue; // ignore les keep-alive
+          if (line.startsWith("data: ")) {
           const data = line.slice(6).trim();
           if (data === "[DONE]") {
-            reader.cancel().catch(() => {});
-            break;
+            try { await reader.cancel(); } catch {}
+            return; // on sort proprement
           }
           try {
             const json = JSON.parse(data);
@@ -148,7 +148,7 @@ function VEO3Generator() {
         </button>
 
         <button
-          onClick={() => { setIdea(""); setOutput(""); }}
+          onClick={() => { abortRef.current?.abort(); setIdea(""); setOutput(""); }}
           className="border rounded px-4 py-2 hover:bg-gray-50"
         >
           Réinitialiser
