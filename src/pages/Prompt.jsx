@@ -32,7 +32,7 @@ function getPromptHistory() {
 export default function PromptAssistant() {
   const [tab, setTab] = useState("veo3"); // 'veo3' | 'sora2' | 'history'
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="w-full pt-3 pb-6 px-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))]">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Prompt Assistant</h1>
         <div className="inline-flex rounded-lg overflow-hidden border">

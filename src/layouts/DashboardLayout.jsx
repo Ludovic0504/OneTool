@@ -13,9 +13,7 @@ export default function DashboardLayout() {
 
       <div className="flex-1 overflow-hidden">
         <SidebarShell open={menuOpen} onCloseMenu={() => setMenuOpen(false)}>
-          <main className="safe-padded h-full overflow-y-auto">
-            <Outlet />
-          </main>
+          <Outlet />
         </SidebarShell>
       </div>
     </div>

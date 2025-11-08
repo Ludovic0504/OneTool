@@ -115,7 +115,9 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
       {/* Contenu principal */}
       <main className="flex-1 min-h-screen">
-        <div className="p-4">{children}</div>
+        <div className="pt-2 pb-3 pl-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))] sm:px-3 md:px-4">
+          {children}
+        </div>
       </main>
     </div>
   );
