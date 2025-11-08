@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 const links = [
-  ["/dashboard", "Dashboard"],
+  ["/lab", "Beta Lab", "mt-6"],
   ["/prompt", "Prompts"],
   ["/image", "Images"],
   ["/video", "Vidéos"],
@@ -72,7 +72,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar desktop*/}
       <aside className="hidden md:block w-60 border-r bg-white">
-        <nav className="flex flex-col gap-1 px-3">
+        <nav className="flex flex-col gap-1 px-3 pt-4">   {/* 👈 add pt-4 here */}
           {links.map(([to, label]) => (
             <Item key={to} to={to}>{label}</Item>
           ))}

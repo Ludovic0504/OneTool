@@ -21,13 +21,23 @@ export default async function handler(req: Request): Promise<Response> {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
+      
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        stream: true,
-        messages: [
-          { role: "system", content: "Tu génères un prompt VEO3 structuré." },
-          { role: "user", content: idea }
-        ],
+    model: "gpt-4o-mini",
+    stream: true,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are VEO3 PromptMaker. Always write the main scene and all descriptions in ENGLISH, but the dialogues must be in FRENCH. " +
+          "Structure your answer with these sections, each clearly labeled and separated by line breaks:\n" +
+          "Scene (in English)\nStyle\nCamera\nLighting\nEnvironment\nTone\nImportant\nDialogue (in French, no exclamation or question marks).",
+      },
+      {
+        role: "user",
+        content: `Idea:\n${idea}\n\nPlease generate the full structured VEO3 prompt.`,
+      },
+    ],
       }),
     });
 
