@@ -1,5 +1,6 @@
 // src/pages/Prompt.jsx
 import { useMemo, useState, useRef, useEffect } from "react";
+import { saveHistory } from "@/lib/supabase/history";
 
 /* ----------------- utils historique (localStorage) ----------------- */
 const LS_KEY = "history_v2"; // commun si tu veux réutiliser plus tard
@@ -151,6 +152,7 @@ function VEO3Generator() {
                     model: "veo3",
                     createdAt: new Date().toISOString(),
                   });
+                  await saveHistory({ kind: "prompt", input: idea, output: finalOutput, model: "veo3" });
                 }
                 // notifier la liste Historique (pour refresh)
                 window.dispatchEvent(new Event("onetool:history:changed"));
@@ -264,17 +266,28 @@ function VEO3Generator() {
 }
 
 /* ---------------- Historique local à la page Prompt ---------------- */
+import { listHistory } from "@/lib/supabase/history";
+import { useAuth } from "@/context/AuthProvider";
+
 function PromptHistory() {
-  const [items, setItems] = useState(() => getPromptHistory());
-  const [q, setQ] = useState("");
+  const { session } = useAuth();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    function refresh() {
-      setItems(getPromptHistory());
-    }
-    window.addEventListener("onetool:history:changed", refresh);
-    return () => window.removeEventListener("onetool:history:changed", refresh);
-  }, []);
+    const load = async () => {
+      if (session) {
+        const rows = await listHistory({ kind: "prompt", limit: 50 });
+        setItems(rows);
+      } else {
+        // fallback localStorage
+        setItems(getPromptHistory());
+      }
+      setLoading(false);
+    };
+    load();
+  }, [session]);
+
 
   const filtered = useMemo(() => {
     if (!q.trim()) return items;

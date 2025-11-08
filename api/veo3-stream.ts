@@ -31,11 +31,21 @@ export default async function handler(req: Request): Promise<Response> {
       }),
     });
 
-    // S'il y a une erreur OpenAI, renvoie son message pour debug
-    if (!upstream.ok || !upstream.body) {
-      const errTxt = await upstream.text();
-      return new Response(`OpenAI error (${upstream.status}): ${errTxt}`, { status: 502 });
-    }
+   // S'il y a une erreur OpenAI, renvoie un message plus clair
+if (!upstream.ok || !upstream.body) {
+  const errTxt = await upstream.text().catch(() => "");
+
+  if (upstream.status === 429) {
+    return new Response(
+      "⚠️ OpenAI : quota insuffisant sur le projet ou la clé. " +
+      "Active la facturation ou augmente ta limite de crédits sur platform.openai.com.",
+      { status: 429 }
+    );
+  }
+
+  return new Response(`OpenAI error (${upstream.status}): ${errTxt}`, { status: 502 });
+}
+
 
     // Proxy du flux → client
     return new Response(upstream.body, {
