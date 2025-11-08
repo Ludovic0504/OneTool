@@ -308,64 +308,71 @@ export default function ImagePage() {
           </div>
         </div>
 
-        {/* Galerie droite */}
-        <div className="rounded-xl border bg-white p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold">Mes créations</h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={clearAllMine}
-                className="text-xs px-3 py-1.5 rounded border hover:bg-gray-50"
-                title="Effacer l'historique (non épinglé) de mes images"
-              >
-                Nettoyer
-              </button>
-            </div>
+        {/* Galerie droite (petit encadré complet et valide) */}
+<div className="rounded-xl border bg-white p-4">
+  {/* En-tête */}
+  <div className="flex items-center justify-between mb-3">
+    <h2 className="text-sm font-semibold">Mes créations</h2>
+
+    {/* Flèche vers l’onglet Historique */}
+    <button
+      type="button"
+      onClick={() => (typeof setTab === "function" ? setTab("history") : null)}
+      className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border hover:bg-gray-50"
+      title="Voir toutes les créations"
+    >
+      <span>Voir tout</span>
+      <span aria-hidden>➜</span>
+    </button>
+  </div>
+
+  {/* Message dynamique */}
+  {status === "pending" && (
+    <p className="text-sm text-gray-600">🪄 Création d’image en cours…</p>
+  )}
+
+  {status === "done" && (
+    <p className="text-sm text-green-700">
+      ✅ Image créée !{" "}
+      <button
+        type="button"
+        onClick={() => (typeof setTab === "function" ? setTab("history") : null)}
+        className="underline underline-offset-2"
+      >
+        Clique pour voir
+      </button>
+    </p>
+  )}
+
+  {status === "idle" && items.length === 0 && (
+    <p className="text-sm text-gray-500">Aucune image générée pour l’instant.</p>
+  )}
+
+  {/* Liste des dernières images (max 8) */}
+  {items.length > 0 && (
+    <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-2">
+      {items.slice(0, 8).map((item) => (
+        <li key={item.id} className="group">
+          <div className="relative overflow-hidden rounded-lg border">
+            <img
+              src={item.urls?.[0]}
+              alt="Création"
+              className="w-full h-36 object-cover"
+              loading="lazy"
+            />
           </div>
-
-          {items.length === 0 ? (
-            <p className="text-sm text-gray-500">Aucune image générée pour l’instant.</p>
-          ) : (
-            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {items.map((item) => (
-                <li key={item.id} className="group">
-                  <div className="relative overflow-hidden rounded-lg border">
-                    {/* on prend la première comme cover */}
-                    <img
-                      src={item.urls?.[0]}
-                      alt="Création"
-                      className="w-full h-36 object-cover"
-                      loading="lazy"
-                    />
-                    <button
-                      onClick={() => removeOne(item.id)}
-                      className="absolute top-2 right-2 text-xs px-2 py-1 rounded bg-white/90 hover:bg-white border"
-                      title="Supprimer"
-                    >
-                      Suppr.
-                    </button>
-                  </div>
-                  <div className="mt-1 text-[11px] text-gray-500 flex items-center justify-between">
-                    <span className="truncate" title={item.prompt}>
-                      {new Date(item.createdAt).toLocaleString()}
-                    </span>
-                    <span>{(item.meta?.ratio) || ""}</span>
-                  </div>
-
-                  {/* mini-mosaïque si plusieurs urls */}
-                  {Array.isArray(item.urls) && item.urls.length > 1 && (
-                    <div className="mt-1 grid grid-cols-4 gap-1">
-                      {item.urls.slice(0, 4).map((u, idx) => (
-                        <img key={idx} src={u} className="w-full h-12 object-cover rounded border" alt="" />
-                      ))}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+          <div className="mt-1 text-[11px] text-gray-500 flex items-center justify-between">
+            <span className="truncate" title={item.prompt}>
+              {new Date(item.createdAt).toLocaleString()}
+            </span>
+            <span>{item.meta?.ratio}</span>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+    </div> 
+  </div> 
+</div>    
+);
 }
