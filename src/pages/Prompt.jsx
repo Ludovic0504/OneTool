@@ -12,16 +12,17 @@ function loadHistory() {
     return [];
   }
 }
-function saveHistory(items) {
+function saveLocalHistory(items) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(items));
   } catch {}
 }
+
 function addHistoryEntry(entry) {
   // entry: {kind:"prompt", input, output, model, createdAt, id}
   const items = loadHistory();
   const withNew = [{ ...entry, pinned: false }, ...items];
-  saveHistory(withNew);
+  saveLocalHistory(withNew);
 }
 function getPromptHistory() {
   return loadHistory().filter((i) => i.kind === "prompt");
@@ -152,7 +153,7 @@ function VEO3Generator() {
                     model: "veo3",
                     createdAt: new Date().toISOString(),
                   });
-                  await saveHistory({ kind: "prompt", input: idea, output: finalOutput, model: "veo3" });
+                  await saveLocalHistory({ kind: "prompt", input: idea, output: finalOutput, model: "veo3" });
                 }
                 // notifier la liste Historique (pour refresh)
                 window.dispatchEvent(new Event("onetool:history:changed"));
@@ -302,7 +303,7 @@ function PromptHistory() {
   const clearAll = () => {
     const all = loadHistory();
     const keep = all.filter((i) => i.kind !== "prompt" || i.pinned); // garde épinglés potentiels
-    saveHistory(keep);
+    saveLocalHistory(keep);
     setItems(getPromptHistory());
   };
 
@@ -314,7 +315,7 @@ function PromptHistory() {
 
   const removeOne = (id) => {
     const all = loadHistory();
-    saveHistory(all.filter((i) => i.id !== id));
+    saveLocalHistory(all.filter((i) => i.id !== id));
     setItems(getPromptHistory());
   };
 
