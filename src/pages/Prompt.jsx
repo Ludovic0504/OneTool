@@ -153,7 +153,7 @@ function VEO3Generator() {
                     model: "veo3",
                     createdAt: new Date().toISOString(),
                   });
-                  await saveLocalHistory({ kind: "prompt", input: idea, output: finalOutput, model: "veo3" });
+                  await saveHistory({ kind: "prompt", input: idea, output: finalOutput, model: "veo3" });
                 }
                 // notifier la liste Historique (pour refresh)
                 window.dispatchEvent(new Event("onetool:history:changed"));
@@ -274,6 +274,7 @@ function PromptHistory() {
   const { session } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -354,7 +355,7 @@ function PromptHistory() {
                     {(i.output || i.input || "").length > 100 ? "…" : ""}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {new Date(i.createdAt).toLocaleString()} · {i.model?.toUpperCase?.()}
+                    {new Date(i.created_at || i.createdAt).toLocaleString()} · {i.model?.toUpperCase?.()}
                   </div>
                 </button>
                 <button
