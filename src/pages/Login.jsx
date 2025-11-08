@@ -76,26 +76,6 @@ export default function Login() {
     }
   };
 
-  const onSendMagicLink = async () => {
-    setErrorMsg("");
-    setSent(false);
-    setMlLoading(true);
-    // NEW: garde le même choix de persistance pour le flux magic link
-    const supabase = getBrowserSupabase({ remember });
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectTo },
-      });
-      if (error) return setErrorMsg(error.message);
-      setSent(true);
-    } catch (err) {
-      setErrorMsg(err?.message || "Erreur inconnue");
-    } finally {
-      setMlLoading(false);
-    }
-  };
-
   const signInWithGoogle = async () => {
     setErrorMsg("");
     // NEW: idem pour OAuth
@@ -124,10 +104,26 @@ export default function Login() {
           </div>
         )}
         {(sent || infoMsg) && (
-          <div className="mb-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded p-2">
-            {infoMsg || "Lien envoyé ✅ — vérifie ta boîte mail"}
+          <div className="mb-4 p-3 -border border-green-200 bg-green-50 text-green-800 text-sm flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-5 h-5 text-green-500"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 8a6 6 0 11-12 0 6 6 0 0112 0zm-7-3a1 1 0 112 0v3a1 1 0 01-.553.894l-2 1A1 1 0 018.5 9.106L10 8.382V5z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div>
+              <strong>Email envoyé !</strong><br />
+              Vérifie ta boîte mail et clique sur le lien pour activer ton compte ✅
+            </div>
           </div>
         )}
+
 
         <form onSubmit={onSubmit} className="space-y-3">
           <div>
@@ -188,6 +184,10 @@ export default function Login() {
             {loading ? (mode === "signin" ? "Connexion..." : "Création...") :
               (mode === "signin" ? "Se connecter" : "S’enregistrer")}
           </button>
+          <p className="mt-2 text-xs text-gray-500 text-center">
+            🔒 Tes données sont protégées — aucune utilisation commerciale.
+          </p>
+
         </form>
 
         <div className="flex justify-between text-sm mt-3">
@@ -203,21 +203,8 @@ export default function Login() {
 
         <button
           type="button"
-          onClick={onSendMagicLink}
-          disabled={!email || mlLoading}
-          className="w-full rounded border px-3 py-2"
-          title="Recevoir un lien de connexion par email"
-        >
-          {mlLoading ? "Envoi du lien..." : "Recevoir un lien magique"}
-        </button>
-
-        <div className="my-4 h-px bg-gray-200" />
-
-        <button
-          type="button"
           onClick={signInWithGoogle}
-          className="w-full rounded border px-3 py-2 hover:bg-gray-50"
-        >
+          className="w-full rounded bg-blue-600 text-white px-3 py-2 font-medium hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
           Continuer avec Google
         </button>
       </div>
