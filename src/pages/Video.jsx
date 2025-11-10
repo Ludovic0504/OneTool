@@ -41,40 +41,40 @@ export default function Video() {
       </div>
 
       {/* Grille à la manière de la page Image : gros panneau gauche + panneau “Mes créations” à droite */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Colonne gauche (2/3) */}
-        <div className="lg:col-span-2">
-          {!showHistory ? (
-            <>
-              {tab === "veo3" && (
-                <Card>
-                  <SectionTitle>Idée (prompt) — VEO3</SectionTitle>
-                  <VEO3VideoForm />
-                </Card>
-              )}
-              {tab === "sora2" && (
-                <Card>
-                  <SectionTitle>Idée (prompt) — Sora2</SectionTitle>
-                  <Sora2VideoForm />
-                </Card>
-              )}
-            </>
-          ) : (
-            <Card>
-              <div className="flex items-center justify-between">
-                <SectionTitle>Historique — {tab.toUpperCase()}</SectionTitle>
-                <button onClick={() => setShowHistory(false)} className="text-xs underline">Fermer</button>
-              </div>
-              <VideoHistoryFull model={tab} />
-            </Card>
-          )}
-        </div>
-
-        {/* Colonne droite (1/3) */}
-        <div className="lg:col-span-1">
-          <RightPanel onOpenHistory={() => setShowHistory(true)} />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[50vh]">
+  {/* Colonne gauche */}
+  {!showHistory ? (
+    <>
+      {tab === "veo3" && (
+        <Card>
+          <SectionTitle>Idée (prompt) — VEO3</SectionTitle>
+          <VEO3VideoForm />
+        </Card>
+      )}
+      {tab === "sora2" && (
+        <Card>
+          <SectionTitle>Idée (prompt) — Sora2</SectionTitle>
+          <Sora2VideoForm />
+        </Card>
+      )}
+    </>
+  ) : (
+    <Card>
+      <div className="flex items-center justify-between">
+        <SectionTitle>Historique — {tab.toUpperCase()}</SectionTitle>
+        <button onClick={() => setShowHistory(false)} className="text-xs underline">
+          Fermer
+        </button>
       </div>
+      <VideoHistoryFull model={tab} />
+    </Card>
+  )}
+
+  {/* Colonne droite */}
+  <div>
+    <RightPanel model={tab} onOpenHistory={() => setShowHistory(true)} />
+  </div>
+</div>
     </main>
   );
 }
@@ -220,7 +220,7 @@ function VEO3VideoForm() {
     <>
       {/* zone de saisie */}
       <textarea
-        className="w-full border rounded p-3 min-h-[140px] outline-none focus:ring"
+        className="w-full border rounded p-3 min-h-[30vh] outline-none focus:ring"
         placeholder="Décris la vidéo (scène, style, ambiance…) — ex : vlog nerveux sous la pluie dans un fast-food néon."
         value={idea}
         onChange={(e) => setIdea(e.target.value)}
@@ -264,22 +264,6 @@ function VEO3VideoForm() {
         >
           Réinitialiser
         </button>
-      </div>
-
-      {/* sortie */}
-      <div className="mt-4">
-        <div className="text-sm font-medium mb-1">Vidéo généré ci-dessous (VEO3)</div>
-        <textarea
-          readOnly
-          className="w-full border rounded p-3 min-h-[320px] bg-gray-50 font-mono text-sm"
-          value={output}
-          placeholder="Le résultat apparaîtra ici…"
-        />
-        <div className="flex justify-end mt-2">
-          <button onClick={copy} disabled={!output.trim()} className="px-3 py-2 rounded border hover:bg-gray-50 disabled:opacity-60">
-            Copier
-          </button>
-        </div>
       </div>
     </>
   );
@@ -438,66 +422,72 @@ function Sora2VideoForm() {
         Réinitialiser
       </button>
     </div>
-
-    <div className="mt-4">
-      <div className="text-sm font-medium mb-1">Vidéo généré ci-dessous (Sora2)</div>
-      <textarea
-        readOnly
-        className="w-full border rounded p-3 min-h-[320px] bg-gray-50 font-mono text-sm"
-        value={output}
-        placeholder="Le résultat apparaîtra ici…"
-      />
-    </div>
   </>
 );
 }
 /* --------------------------- Panneau droit “Mes créations” --------------------------- */
 
-function RightPanel({ onOpenHistory }) {
+function RightPanel({ model, onOpenHistory }) {
   const [items, setItems] = useState(() => getVideoHistory());
+  const [latest, setLatest] = useState(null);
 
   useEffect(() => {
-    const refresh = () => setItems(getVideoHistory());
+    const refresh = () => {
+      const all = getVideoHistory();
+      const filtered = all.filter(i => i.model === model);
+      setItems(filtered);
+      setLatest(filtered[0] || null);
+    };
+    refresh();
     window.addEventListener("onetool:history:changed", refresh);
     return () => window.removeEventListener("onetool:history:changed", refresh);
-  }, []);
+  }, [model]);
 
   return (
-    <div className="bg-white border rounded-xl p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-medium">Mes créations</div>
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            onOpenHistory?.(); // ouvre le panneau Historique 
-          }}
-          className="text-xs underline"
-        >
+    <div className="bg-white border rounded-xl p-4 shadow-sm flex flex-col gap-4 h-full">
+      {/* Dernière création */}
+      {latest ? (
+        <div className="border rounded-xl overflow-hidden shadow-sm">
+          <div className="p-2 text-sm font-medium bg-gray-50 border-b">
+            Dernière création ({model.toUpperCase()})
+          </div>
+          <div className="p-3 text-sm">
+            <div className="font-medium mb-2 line-clamp-3">
+              {latest.output || latest.input}
+            </div>
+            <div className="text-xs text-gray-500">
+              {new Date(latest.createdAt).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="text-sm text-gray-500">Aucune création pour {model.toUpperCase()}.</div>
+      )}
+
+      {/* Historique */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium">Historique</div>
+        <a href="#" onClick={(e) => { e.preventDefault(); onOpenHistory?.(); }} className="text-xs underline">
           Voir tout →
         </a>
       </div>
 
-      {items.length === 0 ? (
-        <div className="text-sm text-gray-500">Aucune vidéo pour l’instant.</div>
-      ) : (
-        <ul className="space-y-2 max-h-[420px] overflow-auto pr-1">
-          {items.slice(0, 8).map((i) => (
-            <li key={i.id} className="p-2 rounded border hover:bg-gray-50">
-              <div className="text-sm font-medium line-clamp-2">
-                {(i.output || i.input || "Sans titre").slice(0, 140)}
-                {(i.output || i.input || "").length > 140 ? "…" : ""}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {new Date(i.createdAt).toLocaleString()} · {i.model?.toUpperCase?.()}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="space-y-2 overflow-auto max-h-[420px] pr-1">
+        {items.slice(1, 8).map((i) => (
+          <li key={i.id} className="p-2 rounded border hover:bg-gray-50">
+            <div className="text-sm line-clamp-2">
+              {i.output || i.input || "Sans titre"}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {new Date(i.createdAt).toLocaleString()}
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
+
 
 /* --------------------------- Historique “plein format” (onglet) --------------------------- */
 
