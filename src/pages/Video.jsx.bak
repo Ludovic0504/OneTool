@@ -1,10 +1,5 @@
 // src/pages/Video.jsx
 import { useMemo, useState, useRef, useEffect } from "react";
-const FORMAT_OPTIONS = ["16:9", "9:16", "1:1", "21:9", "4:5"];
-const DURATION_OPTIONS = {
-  veo3: ["8s"],
-  sora2: ["10s", "15s"],
-};
 
 /* ----------------- utils historique (localStorage, même clé que le reste) ----------------- */
 const LS_KEY = "history_v2";
@@ -25,8 +20,7 @@ function getVideoHistory() {
 
 /* ----------------------------------- Page ----------------------------------- */
 export default function Video() {
-  const [tab, setTab] = useState("veo3"); // 'veo3' | 'sora2'
-  const [showHistory, setShowHistory] = useState(false);
+  const [tab, setTab] = useState("veo3"); // 'veo3' | 'sora2' | 'history'
 
   return (
     <main className="min-h-full text-gray-900">
@@ -34,9 +28,9 @@ export default function Video() {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-2xl font-bold">Vidéo Generation</h2>
         <div className="inline-flex rounded-lg overflow-hidden border">
-          <TabButton active={tab === "veo3"} onClick={() => { setTab("veo3"); setShowHistory(false); }}>VEO3</TabButton>
-          <TabButton active={tab === "sora2"} onClick={() => { setTab("sora2"); setShowHistory(false); }}>Sora2</TabButton>
-
+          <TabButton active={tab === "veo3"} onClick={() => setTab("veo3")}>VEO3</TabButton>
+          <TabButton active={tab === "sora2"} onClick={() => setTab("sora2")}>Sora2</TabButton>
+          <TabButton active={tab === "history"} onClick={() => setTab("history")}>📜 Historique</TabButton>
         </div>
       </div>
 
@@ -44,35 +38,29 @@ export default function Video() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Colonne gauche (2/3) */}
         <div className="lg:col-span-2">
-          {!showHistory ? (
-            <>
-              {tab === "veo3" && (
-                <Card>
-                  <SectionTitle>Idée (prompt) — VEO3</SectionTitle>
-                  <VEO3VideoForm />
-                </Card>
-              )}
-              {tab === "sora2" && (
-                <Card>
-                  <SectionTitle>Idée (prompt) — Sora2</SectionTitle>
-                  <Sora2VideoForm />
-                </Card>
-              )}
-            </>
-          ) : (
+          {tab === "veo3" && (
             <Card>
-              <div className="flex items-center justify-between">
-                <SectionTitle>Historique — {tab.toUpperCase()}</SectionTitle>
-                <button onClick={() => setShowHistory(false)} className="text-xs underline">Fermer</button>
-              </div>
-              <VideoHistoryFull model={tab} />
+              <SectionTitle>Idée (prompt)</SectionTitle>
+              <VEO3VideoForm />
+            </Card>
+          )}
+          {tab === "sora2" && (
+            <Card>
+              <SectionTitle>Idée (prompt) — Sora2</SectionTitle>
+              <Sora2VideoForm />
+            </Card>
+          )}
+          {tab === "history" && (
+            <Card>
+              <SectionTitle>Historique (vidéo)</SectionTitle>
+              <VideoHistoryFull />
             </Card>
           )}
         </div>
 
         {/* Colonne droite (1/3) */}
         <div className="lg:col-span-1">
-          <RightPanel onOpenHistory={() => setShowHistory(true)} />
+          <RightPanel />
         </div>
       </div>
     </main>
@@ -105,8 +93,6 @@ function SectionTitle({ children }) {
 function VEO3VideoForm() {
   const [idea, setIdea] = useState("");
   const [output, setOutput] = useState("");
-  const [format, setFormat] = useState("");
-  const [duration, setDuration] = useState("");
   const [loading, setLoading] = useState(false);
   const disabled = useMemo(() => idea.trim().length < 8, [idea]);
   const abortRef = useRef(null);
@@ -127,7 +113,7 @@ function VEO3VideoForm() {
       const res = await fetch("/api/veo3-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea, format, duration }),
+        body: JSON.stringify({ idea }),
         signal: ctrl.signal,
       });
 
@@ -225,29 +211,11 @@ function VEO3VideoForm() {
         value={idea}
         onChange={(e) => setIdea(e.target.value)}
       />
-      {/* options Format / Durée */}
-        <div className="mt-3 flex gap-3">
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
-         >
-            <option value="">Format (ex: 16:9)</option>
-            {FORMAT_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
 
-          <select
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
-         >
-            {DURATION_OPTIONS.veo3.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
+      {/* options (placeholder si tu veux ajouter format/durée comme sur l'image) */}
+      <div className="mt-2 text-xs text-gray-500">
+        Optionnel — on pourra ajouter “Format, Durée, Modèle” ici si besoin.
+      </div>
 
       {/* actions */}
       <div className="mt-3 flex gap-2">
@@ -292,9 +260,6 @@ function Sora2VideoForm() {
   const [loading, setLoading] = useState(false);
   const disabled = useMemo(() => idea.trim().length < 8, [idea]);
   const abortRef = useRef(null);
-  const [format, setFormat] = useState("");
-  const [duration, setDuration] = useState(DURATION_OPTIONS.sora2[0]); // "10s"
-
 
   const generate = async () => {
     if (disabled || loading) return;
@@ -310,7 +275,7 @@ function Sora2VideoForm() {
       const res = await fetch("/api/sora2-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea, format, duration }),
+        body: JSON.stringify({ idea }),
         signal: ctrl.signal,
       });
 
@@ -387,73 +352,42 @@ function Sora2VideoForm() {
 
   const reset = () => { abortRef.current?.abort?.(); setIdea(""); setOutput(""); };
 
- return (
-  <>
-    <textarea
-      className="w-full border rounded p-3 min-h-[140px] outline-none focus:ring"
-      placeholder="Décris la vidéo pour Sora2 (format / plans / ambiance)…"
-      value={idea}
-      onChange={(e) => setIdea(e.target.value)}
-    />
-
-    {/* options Format / Durée */}
-    <div className="mt-3 flex gap-3">
-      <select
-        value={format}
-        onChange={(e) => setFormat(e.target.value)}
-        className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
-      >
-        <option value="">Format (ex: 16:9)</option>
-        {FORMAT_OPTIONS.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-
-      <select
-        value={duration}
-        onChange={(e) => setDuration(e.target.value)}
-        className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
-      >
-        {DURATION_OPTIONS.sora2.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-
-    </div>
-
-    {/* actions */}
-    <div className="mt-3 flex gap-2">
-      <button
-        onClick={generate}
-        disabled={disabled || loading}
-        className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-60"
-      >
-        {loading ? "Génération…" : "Générer"}
-      </button>
-      <button onClick={reset} className="px-4 py-2 rounded border hover:bg-gray-50">
-        Réinitialiser
-      </button>
-    </div>
-
-    <div className="mt-4">
-      <div className="text-sm font-medium mb-1">Vidéo généré ci-dessous (Sora2)</div>
+  return (
+    <>
       <textarea
-        readOnly
-        className="w-full border rounded p-3 min-h-[320px] bg-gray-50 font-mono text-sm"
-        value={output}
-        placeholder="Le résultat apparaîtra ici…"
+        className="w-full border rounded p-3 min-h-[140px] outline-none focus:ring"
+        placeholder="Décris la vidéo pour Sora2 (format / plans / ambiance)…"
+        value={idea}
+        onChange={(e) => setIdea(e.target.value)}
       />
-    </div>
-  </>
-);
+      <div className="mt-3 flex gap-2">
+        <button
+          onClick={generate}
+          disabled={disabled || loading}
+          className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-60"
+        >
+          {loading ? "Génération…" : "Générer"}
+        </button>
+        <button onClick={reset} className="px-4 py-2 rounded border hover:bg-gray-50">
+          Réinitialiser
+        </button>
+      </div>
+      <div className="mt-4">
+        <div className="text-sm font-medium mb-1">Vidéo généré ci-dessous (Sora2)</div>
+        <textarea
+          readOnly
+          className="w-full border rounded p-3 min-h-[320px] bg-gray-50 font-mono text-sm"
+          value={output}
+          placeholder="Le résultat apparaîtra ici…"
+        />
+      </div>
+    </>
+  );
 }
+
 /* --------------------------- Panneau droit “Mes créations” --------------------------- */
 
-function RightPanel({ onOpenHistory }) {
+function RightPanel() {
   const [items, setItems] = useState(() => getVideoHistory());
 
   useEffect(() => {
@@ -470,7 +404,9 @@ function RightPanel({ onOpenHistory }) {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            onOpenHistory?.(); // ouvre le panneau Historique 
+            // bascule l’onglet global sur Historique si présent dans la page
+            const btn = document.querySelector('button:contains("Historique")');
+            // fallback: on simule un clic sur l’onglet via un event custom si tu préfères
           }}
           className="text-xs underline"
         >
@@ -501,7 +437,7 @@ function RightPanel({ onOpenHistory }) {
 
 /* --------------------------- Historique “plein format” (onglet) --------------------------- */
 
-function VideoHistoryFull({ model }) { // 'veo3' | 'sora2'
+function VideoHistoryFull() {
   const [items, setItems] = useState(() => getVideoHistory());
   const [q, setQ] = useState("");
 
@@ -513,15 +449,14 @@ function VideoHistoryFull({ model }) { // 'veo3' | 'sora2'
 
   const filtered = useMemo(() => {
     const t = q.toLowerCase();
-    const base = model ? items.filter(i => (i.model || "").toLowerCase() === model) : items;
     return !t
-      ? base
-      : base.filter(
+      ? items
+      : items.filter(
           (i) =>
             (i.input || "").toLowerCase().includes(t) ||
             (i.output || "").toLowerCase().includes(t)
         );
-  }, [q, items, model]);
+  }, [items, q]);
 
   const clearAll = () => {
     const all = loadHistory();
