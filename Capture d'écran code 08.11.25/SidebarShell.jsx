@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 const links = [
-  ["/lab", "Beta Lab", "mt-6"],
+  ["/dashboard", "Dashboard"],
   ["/prompt", "Prompts"],
   ["/image", "Images"],
   ["/video", "Vidéos"],
@@ -60,9 +60,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `rounded px-3 py-2 text-slate-300 hover:bg-white/5 ${
-          isActive ? "bg-accent/10 text-accent font-medium shadow-glow" : ""
-        }`
+        `rounded px-3 py-2 hover:bg-gray-100 ${isActive ? "bg-gray-100 font-medium" : ""}`
       }
       onClick={() => onCloseMenu?.()}
     >
@@ -71,10 +69,10 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
   );
 
   return (
-    <div className="min-h-screen bg-transparent flex">
+    <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar desktop*/}
-      <aside className="hidden md:block w-60 border-r border-white/10 bg-surface text-slate-200">
-        <nav className="flex flex-col gap-1 px-3 pt-4">   {/* 👈 add pt-4 here */}
+      <aside className="hidden md:block w-60 border-r bg-white">
+        <nav className="flex flex-col gap-1 px-3">
           {links.map(([to, label]) => (
             <Item key={to} to={to}>{label}</Item>
           ))}
@@ -92,7 +90,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
       <aside
         ref={panelRef}
-        className={`fixed inset-y-0 left-0 w-60 bg-surface text-slate-200 border-r border-white/10 transform transition-transform duration-200 z-50 md:hidden ${
+        className={`fixed inset-y-0 left-0 w-60 bg-white border-r transform transition-transform duration-200 z-50 md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}
@@ -117,9 +115,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
       {/* Contenu principal */}
       <main className="flex-1 min-h-screen">
-        <div className="pt-2 pb-3 pl-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))] sm:px-3 md:px-4">
-          {children}
-        </div>
+        <div className="p-4">{children}</div>
       </main>
     </div>
   );

@@ -7,18 +7,21 @@ import { getBrowserSupabase } from "@/lib/supabase/browser-client";
 const STATUS = {
   ready: { badge: "Disponible", kind: "new", cta: "Ouvrir", disabled: false },
   improve: { badge: "Amélioration", kind: "new", cta: "Ouvrir", disabled: false },
-  progress: { badge: "En cours", kind: "", cta: "Ouvrir la page", disabled: false },
+  progress: { badge: "En cours", kind: "", cta: "Ouvrir", disabled: false },
   soon: { badge: "À venir", kind: "soon", cta: "Bientôt", disabled: true },
   concept: { badge: "Concept", kind: "", cta: "Bientôt", disabled: true },
 };
 
 function Badge({ kind = "", children }) {
   const styles =
-    kind === "new"
-      ? "bg-emerald-500/15 text-emerald-600 border-emerald-200"
-      : kind === "soon"
-      ? "bg-amber-500/15 text-amber-600 border-amber-200"
-      : "bg-gray-500/15 text-gray-600 border-gray-200";
+  kind === "new"
+    // vert néon lisible sur dark
+    ? "bg-accent/10 text-accent border-accent/30"
+    : kind === "soon"
+    // ambre plus clair
+    ? "bg-amber-500/15 text-amber-300 border-amber-400/30"
+    // neutre lisible
+    : "bg-white/5 text-slate-300 border-white/10";
   return (
     <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${styles}`}>
       {children}
@@ -28,24 +31,24 @@ function Badge({ kind = "", children }) {
 
 function Card({ title, badge, desc, cta, to, disabled }) {
   return (
-    <div className="group rounded-2xl border bg-white p-5 shadow-sm hover:shadow transition">
+    <div className="group rounded-2xl border border-white/10 bg-surface/70 backdrop-blur-md p-5 shadow-sm hover:shadow-glow transition">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-base font-semibold">{title}</h3>
+        <h3 className="text-base font-semibold text-white group-hover:text-accent transition-colors">{title}</h3>
         {badge}
       </div>
-      <p className="mt-2 text-sm text-gray-600">{desc}</p>
+      <p className="mt-2 text-sm text-slate-400">{desc}</p>
       <div className="mt-4">
         {disabled ? (
           <button
             disabled
-            className="inline-flex items-center rounded-lg border px-3 py-1.5 text-sm opacity-60 cursor-not-allowed"
+            className="inline-flex items-center rounded-lg border border-white/10 px-3 py-1.5 text-sm text-slate-400 opacity-60 cursor-not-allowed"
           >
             {cta}
           </button>
         ) : (
           <Link
             to={to}
-            className="inline-flex items-center rounded-lg bg-black text-white px-3 py-1.5 text-sm hover:opacity-90"
+            className="inline-flex items-center rounded-lg px-3 py-1.5 text-sm bg-gradient-to-r from-accent/90 to-emerald-400 text-black shadow-[0_0_20px_rgba(33,243,185,0.4)] hover:brightness-125"
           >
             {cta}
           </Link>
@@ -126,8 +129,10 @@ export default function Lab() {
   return (
     <main className="safe-padded min-h-full">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold">Nouveautés · Bêta Lab</h1>
-        <p className="text-gray-600 mt-1 text-sm">
+        <h1 className="text-3xl font-extrabold text-accent/90">
+          Nouveautés · <span className="text-white">Bêta Lab</span>
+        </h1>
+        <p className="text-slate-400 mt-1 text-sm">
           Statuts mis à jour en temps réel (construction → amélioration → final).
         </p>
       </header>

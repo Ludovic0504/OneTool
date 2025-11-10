@@ -10,12 +10,3 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   padding-top:   max(0.75rem, env(safe-area-inset-top));
   padding-bottom:max(0.75rem, env(safe-area-inset-bottom));
   }
-
-  .bg-neon {
-  background:
-    radial-gradient(1000px 300px at 50% -200px, rgba(33,243,185,.06), transparent 70%),
-    radial-gradient(800px 200px at 50% 40%, rgba(33,243,185,.04), transparent 70%),
-    linear-gradient(180deg, #050810, #080c16);
-  background-attachment: fixed;
-}
-

@@ -16,7 +16,7 @@ export default function Header({ onOpenMenu }) {
 
   return (
     // full-bleed + collé en haut
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-surface text-gray-100 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-surface/90">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-700 bg-[#0f172a] text-gray-100 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-[#0f172a]/90">
       <div className="pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-14 flex items-center gap-3">
         {/* Gauche : burger collé + brand */}
         <button

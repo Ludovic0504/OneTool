@@ -7,13 +7,15 @@ export default function DashboardLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-dvh flex flex-col bg-neon text-white">
+    <div className="min-h-dvh flex flex-col bg-[#f1f5f9]">
       {/* Header full-bleed (aucun wrapper/padding autour) */}
       <Header onOpenMenu={() => setMenuOpen(true)} />
 
       <div className="flex-1 overflow-hidden">
         <SidebarShell open={menuOpen} onCloseMenu={() => setMenuOpen(false)}>
-          <Outlet />
+          <main className="safe-padded h-full overflow-y-auto">
+            <Outlet />
+          </main>
         </SidebarShell>
       </div>
     </div>

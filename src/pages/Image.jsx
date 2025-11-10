@@ -205,11 +205,11 @@ export default function ImagePage() {
       {/* Deux colonnes : éditeur à gauche, galerie à droite */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Panneau gauche */}
-        <div className="rounded-xl border bg-white p-4 space-y-4">
+        <div className="rounded-xl border bg-white p-4 space-y-4 border-slate-200 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div>
             <label className="block text-sm font-medium mb-1">Idée (prompt)</label>
             <textarea
-              className="w-full border rounded p-3 min-h-[140px] outline-none focus:ring"
+              className="w-full rounded p-3 min-h-[140px] outline-none border border-slate-300 focus:ring focus:ring-slate-200 bg-white placeholder-slate-400 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400"
               placeholder="Décris l'image que tu veux générer…"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -238,7 +238,7 @@ export default function ImagePage() {
               <button
                 type="button"
                 onClick={onPickRefImage}
-                className="w-full border-2 border-dashed rounded-lg p-6 text-sm text-gray-600 hover:bg-gray-50"
+                className="w-full rounded-lg p-6 text-sm border-2 border-dashed text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800/60 border-slate-300 dark:border-slate-700"
               >
                 + Ajouter une image de référence
               </button>
@@ -260,7 +260,7 @@ export default function ImagePage() {
             <div>
               <label className="block text-sm mb-1">Format</label>
               <select
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded px-3 py-2 border border-slate-300 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 value={ratio}
                 onChange={(e) => setRatio(e.target.value)}
               >
@@ -274,7 +274,7 @@ export default function ImagePage() {
             <div>
               <label className="block text-sm mb-1">Quantité</label>
               <select
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded px-3 py-2 border border-slate-300 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
               >
@@ -290,14 +290,14 @@ export default function ImagePage() {
             <button
               onClick={generate}
               disabled={!canGenerate}
-              className="bg-black text-white rounded px-4 py-2 disabled:opacity-60"
+              className="rounded px-4 py-2 bg-slate-900 text-white hover:opacity-90 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
               title={credits < totalCost ? "Crédits insuffisants" : ""}
             >
               {busy ? "Génération…" : `Générer (${totalCost} crédit${totalCost > 1 ? "s" : ""})`}
             </button>
             <button
               onClick={() => { setPrompt(""); setRefCharDataUrl(null); }}
-              className="border rounded px-4 py-2 hover:bg-gray-50"
+              className="rounded px-4 py-2 border hover:bg-gray-50 border-slate-300 text-slate-700 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
             >
               Réinitialiser
             </button>
@@ -309,7 +309,7 @@ export default function ImagePage() {
         </div>
 
         {/* Galerie droite (petit encadré complet et valide) */}
-<div className="rounded-xl border bg-white p-4">
+<div className="rounded-xl border bg-white p-4 border-slate-200 shadow-sm dark:border-slate-700 dark:bg-slate-900">
   {/* En-tête */}
   <div className="flex items-center justify-between mb-3">
     <h2 className="text-sm font-semibold">Mes créations</h2>
@@ -318,7 +318,7 @@ export default function ImagePage() {
     <button
       type="button"
       onClick={() => (typeof setTab === "function" ? setTab("history") : null)}
-      className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border hover:bg-gray-50"
+      className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border hover:bg-gray-50 border-slate-300 text-slate-700 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
       title="Voir toutes les créations"
     >
       <span>Voir tout</span>
@@ -353,7 +353,7 @@ export default function ImagePage() {
     <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-2">
       {items.slice(0, 8).map((item) => (
         <li key={item.id} className="group">
-          <div className="relative overflow-hidden rounded-lg border">
+          <div className="relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
             <img
               src={item.urls?.[0]}
               alt="Création"
@@ -375,4 +375,4 @@ export default function ImagePage() {
   </div> 
 </div>    
 );
-}
+}// __TEST_SAVE__ 15:16:04

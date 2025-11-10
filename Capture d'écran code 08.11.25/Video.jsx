@@ -29,71 +29,63 @@ export default function Video() {
   const [showHistory, setShowHistory] = useState(false);
 
   return (
-    <main className="safe-padded min-h-full">
+    <main className="min-h-full text-gray-900">
       {/* Titre + onglets en haut à droite (comme tu aimes) */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-2xl font-bold">Vidéo Generation</h2>
-        <div className="inline-flex items-center border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
-  <TabButton active={tab === "veo3"} onClick={() => { setTab("veo3"); setShowHistory(false); }}>
-    VEO3
-  </TabButton>
-  <TabButton active={tab === "sora2"} onClick={() => { setTab("sora2"); setShowHistory(false); }}>
-    Sora2
-  </TabButton>
-</div>
+        <div className="inline-flex rounded-lg overflow-hidden border">
+          <TabButton active={tab === "veo3"} onClick={() => { setTab("veo3"); setShowHistory(false); }}>VEO3</TabButton>
+          <TabButton active={tab === "sora2"} onClick={() => { setTab("sora2"); setShowHistory(false); }}>Sora2</TabButton>
 
+        </div>
       </div>
 
       {/* Grille à la manière de la page Image : gros panneau gauche + panneau “Mes créations” à droite */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[50vh]">
-  {/* Colonne gauche */}
-  {!showHistory ? (
-    <>
-      {tab === "veo3" && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Colonne gauche */}
+        {!showHistory ? (
+          <>
+            {tab === "veo3" && (
+             <Card>
+                <SectionTitle>Idée (prompt) — VEO3</SectionTitle>
+                <VEO3VideoForm />
+              </Card>
+           )}
+            {tab === "sora2" && (
+            <Card>
+              <SectionTitle>Idée (prompt) — Sora2</SectionTitle>
+              <Sora2VideoForm />
+            </Card>
+          )}
+        </>
+      ) : (
         <Card>
-          <SectionTitle>Idée (prompt) — VEO3</SectionTitle>
-          <VEO3VideoForm />
-        </Card>
-      )}
-      {tab === "sora2" && (
-        <Card>
-          <SectionTitle>Idée (prompt) — Sora2</SectionTitle>
-          <Sora2VideoForm />
-        </Card>
-      )}
-    </>
-  ) : (
-    <Card>
-      <div className="flex items-center justify-between">
-        <SectionTitle>Historique — {tab.toUpperCase()}</SectionTitle>
-        <button onClick={() => setShowHistory(false)} className="text-xs underline">
-          Fermer
-        </button>
-      </div>
-      <VideoHistoryFull model={tab} />
-    </Card>
-  )}
+          <div className="flex items-center justify-between">
+            <SectionTitle>Historique — {tab.toUpperCase()}</SectionTitle>
+            <button onClick={() => setShowHistory(false)} className="text-xs underline">
+              Fermer
+            </button>
+          </div>
+          <VideoHistoryFull model={tab} />
+       </Card>
+     )}
 
-  {/* Colonne droite */}
-  {!showHistory && (
-    <div>
-      <RightPanel model={tab} onOpenHistory={() => setShowHistory(true)} />
+    {/* Colonne droite */}
+      <div>
+        <RightPanel model={tab} onOpenHistory={() => setShowHistory(true)} />
+      </div>
     </div>
-  )}
-</div>
-    </main>
-  );
-}
+        </main>
+      );
+    }
 
 function TabButton({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
       className={
-        "px-4 py-2 text-sm font-medium transition-all duration-200 " +
-        (active
-          ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-          : "bg-white text-slate-700 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700")
+        "px-4 py-2 text-sm " +
+        (active ? "bg-black text-white" : "bg-white hover:bg-gray-50")
       }
     >
       {children}
@@ -101,13 +93,8 @@ function TabButton({ active, onClick, children }) {
   );
 }
 
-
 function Card({ children }) {
-  return (
-    <div className="rounded-xl border bg-white p-4 border-slate-200 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-      {children}
-    </div>
-  );
+  return <div className="bg-white border rounded-xl p-4 shadow-sm">{children}</div>;
 }
 function SectionTitle({ children }) {
   return <h3 className="text-sm font-medium mb-2">{children}</h3>;
@@ -233,8 +220,7 @@ function VEO3VideoForm() {
     <>
       {/* zone de saisie */}
       <textarea
-        className="w-full rounded p-3 min-h-[30vh] outline-none border border-slate-300 focus:ring focus:ring-slate-200 bg-white placeholder-slate-400 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400"
-
+        className="w-full border rounded p-3 min-h-[140px] outline-none focus:ring"
         placeholder="Décris la vidéo (scène, style, ambiance…) — ex : vlog nerveux sous la pluie dans un fast-food néon."
         value={idea}
         onChange={(e) => setIdea(e.target.value)}
@@ -244,7 +230,7 @@ function VEO3VideoForm() {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value)}
-            className="flex-1 rounded p-2 text-sm outline-none border border-slate-300 bg-white text-slate-900 focus:ring focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
          >
             <option value="">Format (ex: 16:9)</option>
             {FORMAT_OPTIONS.map((opt) => (
@@ -255,7 +241,7 @@ function VEO3VideoForm() {
           <select
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            className="flex-1 rounded p-2 text-sm outline-none border border-slate-300 bg-white text-slate-900 focus:ring focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
          >
             {DURATION_OPTIONS.veo3.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
@@ -265,21 +251,20 @@ function VEO3VideoForm() {
 
       {/* actions */}
       <div className="mt-3 flex gap-2">
-  <button
-    onClick={generate}
-    disabled={disabled || loading}
-    className="px-4 py-2 rounded bg-slate-900 text-white hover:opacity-90 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-  >
-    {loading ? "Génération…" : "Générer"}
-  </button>
-
-  <button
-    onClick={reset}
-    className="px-4 py-2 rounded border hover:bg-gray-50 border-slate-300 text-slate-700 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
-  >
-    Réinitialiser
-  </button>
-</div>
+        <button
+          onClick={generate}
+          disabled={disabled || loading}
+          className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-60"
+        >
+          {loading ? "Génération…" : "Générer"}
+        </button>
+        <button
+          onClick={reset}
+          className="px-4 py-2 rounded border hover:bg-gray-50"
+        >
+          Réinitialiser
+        </button>
+      </div>
     </>
   );
 }
@@ -389,19 +374,18 @@ function Sora2VideoForm() {
  return (
   <>
     <textarea
-  className="w-full rounded p-3 min-h-[140px] outline-none border border-slate-300 focus:ring focus:ring-slate-200 bg-white placeholder-slate-400 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400"
-  placeholder="Décris la vidéo pour Sora2 (format / plans / ambiance)…"
-  value={idea}
-  onChange={(e) => setIdea(e.target.value)}
-/>
-
+      className="w-full border rounded p-3 min-h-[140px] outline-none focus:ring"
+      placeholder="Décris la vidéo pour Sora2 (format / plans / ambiance)…"
+      value={idea}
+      onChange={(e) => setIdea(e.target.value)}
+    />
 
     {/* options Format / Durée */}
     <div className="mt-3 flex gap-3">
       <select
         value={format}
         onChange={(e) => setFormat(e.target.value)}
-        className="flex-1 rounded p-2 text-sm outline-none border border-slate-300 bg-white text-slate-900 focus:ring focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+        className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
       >
         <option value="">Format (ex: 16:9)</option>
         {FORMAT_OPTIONS.map((opt) => (
@@ -414,7 +398,7 @@ function Sora2VideoForm() {
       <select
         value={duration}
         onChange={(e) => setDuration(e.target.value)}
-        className="flex-1 rounded p-2 text-sm outline-none border border-slate-300 bg-white text-slate-900 focus:ring focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+        className="flex-1 border rounded p-2 bg-white text-sm outline-none focus:ring"
       >
         {DURATION_OPTIONS.sora2.map((opt) => (
           <option key={opt} value={opt}>
@@ -430,13 +414,23 @@ function Sora2VideoForm() {
       <button
         onClick={generate}
         disabled={disabled || loading}
-        className="px-4 py-2 rounded bg-slate-900 text-white hover:opacity-90 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+        className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-60"
       >
         {loading ? "Génération…" : "Générer"}
       </button>
       <button onClick={reset} className="px-4 py-2 rounded border hover:bg-gray-50">
         Réinitialiser
       </button>
+    </div>
+
+    <div className="mt-4">
+      <div className="text-sm font-medium mb-1">Vidéo généré ci-dessous (Sora2)</div>
+      <textarea
+        readOnly
+        className="w-full border rounded p-3 min-h-[320px] bg-gray-50 font-mono text-sm"
+        value={output}
+        placeholder="Le résultat apparaîtra ici…"
+      />
     </div>
   </>
 );
@@ -460,56 +454,49 @@ function RightPanel({ model, onOpenHistory }) {
   }, [model]);
 
   return (
-    <div className="rounded-xl border bg-white p-4 border-slate-200 shadow-sm dark:border-slate-700 dark:bg-slate-900 flex flex-col gap-4 h-full">
-  {/* Dernière création */}
-  {latest ? (
-    <div className="border rounded-xl overflow-hidden shadow-sm">
-      <div className="p-2 text-sm font-medium bg-gray-50 dark:bg-slate-800 border-b dark:border-slate-700">
-        Dernière création ({model.toUpperCase()})
-      </div>
-      <div className="p-3 text-sm">
-        <div className="font-medium mb-2 line-clamp-3">{latest.output || latest.input}</div>
-        <div className="text-xs text-gray-500 dark:text-slate-400">
-          {new Date(latest.createdAt).toLocaleString()}
+    <div className="bg-white border rounded-xl p-4 shadow-sm flex flex-col gap-4 h-full">
+      {/* Dernière création */}
+      {latest ? (
+        <div className="border rounded-xl overflow-hidden shadow-sm">
+          <div className="p-2 text-sm font-medium bg-gray-50 border-b">
+            Dernière création ({model.toUpperCase()})
+          </div>
+          <div className="p-3 text-sm">
+            <div className="font-medium mb-2 line-clamp-3">
+              {latest.output || latest.input}
+            </div>
+            <div className="text-xs text-gray-500">
+              {new Date(latest.createdAt).toLocaleString()}
+            </div>
+          </div>
         </div>
+      ) : (
+        <div className="text-sm text-gray-500">Aucune création pour {model.toUpperCase()}.</div>
+      )}
+
+      {/* Historique */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium">Historique</div>
+        <a href="#" onClick={(e) => { e.preventDefault(); onOpenHistory?.(); }} className="text-xs underline">
+          Voir tout →
+        </a>
       </div>
+
+      <ul className="space-y-2 overflow-auto max-h-[420px] pr-1">
+        {items.slice(1, 8).map((i) => (
+          <li key={i.id} className="p-2 rounded border hover:bg-gray-50">
+            <div className="text-sm line-clamp-2">
+              {i.output || i.input || "Sans titre"}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {new Date(i.createdAt).toLocaleString()}
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
-  ) : (
-    <div className="text-sm text-gray-500 dark:text-slate-400">
-      Aucune création pour {model.toUpperCase()}.
-    </div>
-  )}
-
-  {/* Historique */}
-  <div className="flex items-center justify-between">
-    <div className="text-sm font-medium">Historique</div>
-    <a
-      href="#"
-      onClick={(e) => {
-        e.preventDefault();
-        onOpenHistory?.();
-      }}
-      className="text-xs underline"
-    >
-      Voir tout →
-    </a>
-  </div>
-
-  <ul className="space-y-2 overflow-auto max-h-[420px] pr-1">
-    {items.slice(1, 8).map((i) => (
-      <li key={i.id} className="p-2 rounded border hover:bg-gray-50 dark:hover:bg-slate-800">
-        <div className="text-sm line-clamp-2">{i.output || i.input || "Sans titre"}</div>
-        <div className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-          {new Date(i.createdAt).toLocaleString()}
-        </div>
-      </li>
-    ))}
-  </ul>
-</div>
-
   );
 }
-
 
 /* --------------------------- Historique “plein format” (onglet) --------------------------- */
 
@@ -551,13 +538,13 @@ function VideoHistoryFull({ model }) { // 'veo3' | 'sora2'
           placeholder="Rechercher…"
           className="w-full border rounded-xl px-3 py-2 outline-none"
         />
-        <button onClick={clearAll} className="text-xs px-3 py-2 rounded-xl border hover:bg-gray-50 border-slate-300 text-slate-700 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800">
+        <button onClick={clearAll} className="text-xs px-3 py-2 rounded-xl border hover:bg-gray-50">
           Nettoyer
         </button>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-sm text-gray-500 dark:text-slate-400">Aucun élément</div>
+        <div className="text-sm text-gray-500">Aucun élément</div>
       ) : (
         <ul className="divide-y">
           {filtered.map((i) => (
