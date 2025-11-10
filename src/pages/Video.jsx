@@ -71,9 +71,11 @@ export default function Video() {
   )}
 
   {/* Colonne droite */}
-  <div>
-    <RightPanel model={tab} onOpenHistory={() => setShowHistory(true)} />
-  </div>
+  {!showHistory && (
+    <div>
+      <RightPanel model={tab} onOpenHistory={() => setShowHistory(true)} />
+    </div>
+  )}
 </div>
     </main>
   );
