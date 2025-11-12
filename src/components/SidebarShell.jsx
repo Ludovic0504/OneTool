@@ -58,7 +58,7 @@ useEffect(() => {
     <div className="min-h-screen bg-transparent flex">
       {/* Sidebar desktop */}
       <aside className="relative hidden md:block w-60 bg-transparent text-white">
-        <nav className="flex flex-col gap-1 px-3 pt-4">
+        <nav className="flex flex-col gap-2 px-3 pt-4">
           {links.map(([to, label]) => (
             <Item key={to} to={to} label={label} />
           ))}
@@ -66,14 +66,14 @@ useEffect(() => {
       </aside>
 
      {/* Overlay mobile (assombrissement + flou, sans clipPath) */}
-{open && (
-  <div
-    className="fixed inset-0 z-40 bg-black/60 md:hidden"
-    onMouseDown={() => onCloseMenu?.()}
-    onTouchStart={() => onCloseMenu?.()}
-    aria-hidden
-  />
-)}
+    {open && (
+      <div
+        className="fixed inset-0 z-40 bg-black/60 md:hidden"
+        onMouseDown={() => onCloseMenu?.()}
+        onTouchStart={() => onCloseMenu?.()}
+        aria-hidden
+      />
+    )}
    
 
       {/* Drawer mobile (net, au-dessus de l’overlay) */}
