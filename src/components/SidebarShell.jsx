@@ -57,13 +57,18 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
       {/* Overlay mobile (assombrissement léger, SANS flou) */}
       {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 md:hidden"
-          onMouseDown={() => onCloseMenu?.()}
-          onTouchStart={() => onCloseMenu?.()}
-          aria-hidden
-        />
-      )}
+  <div
+    className="fixed inset-0 z-40 bg-black/50 md:hidden"
+    style={{
+      WebkitBackdropFilter: "blur(24px)", // floute seulement le fond
+      backdropFilter: "blur(24px)",       // floute seulement le fond
+      clipPath: "inset(64px 0 0 240px)"   // 64px = header, 256px = largeur sidebar
+    }}
+    onMouseDown={() => onCloseMenu?.()}
+    onTouchStart={() => onCloseMenu?.()}
+    aria-hidden
+  />
+)}
 
       {/* Drawer mobile (net, au-dessus de l’overlay) */}
       <aside
