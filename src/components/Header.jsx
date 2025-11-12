@@ -22,7 +22,7 @@ export default function Header({ onOpenMenu, menuOpen }) {
     {/* couche blur interne du header */}
     {menuOpen && (
       <div
-        className="absolute inset-0 pointer-events-none backdrop-blur-2xl supports-[backdrop-filter]:bg-[#0C1116]/60 bg-[#0C1116]/70"
+        className="absolute inset-0 pointer-events-none bg-[#0C1116]/60"
         style={{ WebkitBackdropFilter: "blur(24px)" }} // fallback iOS
       />
     )}
