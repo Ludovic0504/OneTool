@@ -73,8 +73,11 @@ useEffect(() => {
       type="button"
       className="absolute right-0 bottom-0 bg-black/60"
       style={{
-        top: "64px",   // h-16 du header
-        left: "256px", // w-64 de la sidebar
+        // header = 64px (h-16). Si tu as un notch iOS, prends la ligne suivante à la place :
+        // top: `calc(env(safe-area-inset-top) + 64px)`,
+        top: "64px",
+        // sidebar = w-64 = 16rem = 256px
+        left: "256px",
       }}
       onMouseDown={() => onCloseMenu?.()}
       onTouchStart={() => onCloseMenu?.()}
@@ -83,8 +86,8 @@ useEffect(() => {
     <div
       className="absolute right-0 bottom-0 pointer-events-none"
       style={{
-        top: "64px",
-        left: "256px",
+        top: "64px",      // ou calc(env(safe-area-inset-top) + 64px)
+        left: "256px",    // largeur exacte de ta sidebar
         WebkitBackdropFilter: "blur(24px)",
         backdropFilter: "blur(24px)",
       }}
@@ -93,10 +96,11 @@ useEffect(() => {
 )}
 
 
+
       {/* Drawer mobile (net, au-dessus de l’overlay) */}
       <aside
         ref={panelRef}
-        className={`fixed inset-y-0 left-0 w-64 bg-[#0C1116] border-r border-white/10 transform transform-gpu transition-transform duration-200 z-50 md:hidden ${
+        className={`fixed inset-y-0 left-0 w-64 bg-[#0C1116] border-r border-white/10 transform transform-gpu will-change-transform transition-transform duration-200 z-50 md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}
