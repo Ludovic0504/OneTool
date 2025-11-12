@@ -64,6 +64,7 @@ const DEFAULT_FEATURES = [
   { key: "veo3", title: "Générateur VEO3 (amélioré)", desc: "Scene/Style/Camera/Lighting/Tone + dialogues FR.", route: "/prompt?tab=veo3", status: "improve" },
   { key: "images", title: "Images · Hailuo", desc: "UI prête. Il reste à brancher l’API pour lancer les générations.", route: "/image", status: "progress" },
   { key: "videos", title: "Vidéos — page refonte", desc: "Onglets en haut à droite, alignée sur la page Image.", route: "/video", status: "soon" },
+  { key: "asavoir", title: "À savoir", desc: "Notes, rappels et infos utiles regroupées ici.", route: "/a-savoir", status: "soon" },
   { key: "audio", title: "Audio", desc: "Génération et mix simple. En cours de spec.", route: "#", status: "soon" },
   { key: "projects", title: "Projets", desc: "Regrouper prompts, images et vidéos par projet. Structure et partage facilités.", route: "#", status: "concept" },
 ];
