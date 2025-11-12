@@ -58,7 +58,7 @@ useEffect(() => {
     <div className="min-h-screen bg-transparent flex">
       {/* Sidebar desktop */}
       <aside className="relative hidden md:block w-60 bg-transparent text-white">
-        <nav className="flex flex-col gap-2 px-3 pt-4">
+        <nav className="flex flex-col gap-3 px-3 pt-4">
           {links.map(([to, label]) => (
             <Item key={to} to={to} label={label} />
           ))}
