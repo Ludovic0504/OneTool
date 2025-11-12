@@ -68,13 +68,17 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
       {/* Overlay + Drawer mobile */}
       {open && (
-        <div
-          className="fixed left-0 right-0 bottom-0 top-16 bg-black/60 backdrop-blur-sm md:hidden z-40"
-          onMouseDown={() => onCloseMenu?.()}
-          onTouchStart={() => onCloseMenu?.()}
-          aria-hidden
-        />
-      )}
+  <div
+    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-2xl supports-[backdrop-filter]:bg-black/30"
+    style={{
+      WebkitBackdropFilter: "blur(24px)", // compatibilité iOS
+      clipPath: "inset(64px 0 0 0)"       // exclut la zone du header (64px = h-16)
+    }}
+    onMouseDown={() => onCloseMenu?.()}
+    onTouchStart={() => onCloseMenu?.()}
+    aria-hidden
+  />
+)}
 
       <aside
         ref={panelRef}
