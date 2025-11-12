@@ -67,22 +67,12 @@ useEffect(() => {
 
      {/* Overlay mobile (assombrissement + flou, sans clipPath) */}
 {open && (
-  <div className="fixed inset-0 z-40 md:hidden" aria-hidden>
-    {/* couche clic (sombre) */}
-    <button
-      type="button"
-      className="absolute right-0 bottom-0 bg-black/60"
-      style={{
-        // header = 64px (h-16). Si tu as un notch iOS, prends la ligne suivante à la place :
-        // top: `calc(env(safe-area-inset-top) + 64px)`,
-        top: "64px",
-        // sidebar = w-64 = 16rem = 256px
-        left: "256px",
-      }}
-      onMouseDown={() => onCloseMenu?.()}
-      onTouchStart={() => onCloseMenu?.()}
-    />
-  </div>
+  <div
+    className="fixed inset-0 z-40 bg-black/60 md:hidden"
+    onMouseDown={() => onCloseMenu?.()}
+    onTouchStart={() => onCloseMenu?.()}
+    aria-hidden
+  />
 )}
    
 
