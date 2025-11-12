@@ -82,21 +82,8 @@ useEffect(() => {
       onMouseDown={() => onCloseMenu?.()}
       onTouchStart={() => onCloseMenu?.()}
     />
-    {/* couche blur (visuelle uniquement) */}
-    <div
-      className="absolute right-0 bottom-0 pointer-events-none"
-      style={{
-        top: "64px",      // ou calc(env(safe-area-inset-top) + 64px)
-        left: "256px",    // largeur exacte de ta sidebar
-        WebkitBackdropFilter: "blur(24px)",
-        backdropFilter: "blur(24px)",
-      }}
-    />
-  </div>
-)}
-
-
-
+   
+   
       {/* Drawer mobile (net, au-dessus de l’overlay) */}
       <aside
         ref={panelRef}
