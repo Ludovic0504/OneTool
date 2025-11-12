@@ -69,9 +69,10 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
       {/* Overlay + Drawer mobile */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm md:hidden z-40"
+          className="fixed left-0 right-0 bottom-0 top-16 bg-black/60 backdrop-blur-sm md:hidden z-40"
           onMouseDown={() => onCloseMenu?.()}
           onTouchStart={() => onCloseMenu?.()}
+          aria-hidden
         />
       )}
 
