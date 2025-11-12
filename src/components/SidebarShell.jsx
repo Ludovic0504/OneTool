@@ -82,8 +82,10 @@ useEffect(() => {
       onMouseDown={() => onCloseMenu?.()}
       onTouchStart={() => onCloseMenu?.()}
     />
+  </div>
+)}
    
-   
+
       {/* Drawer mobile (net, au-dessus de l’overlay) */}
       <aside
         ref={panelRef}
