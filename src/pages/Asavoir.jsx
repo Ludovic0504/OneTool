@@ -22,7 +22,7 @@ function Tile({ children, className = "" }) {
   return (
     <article
       className={
-        "group rounded-2xl border border-white/10 bg-[#0b111a] p-5 " +
+        "group rounded-2xl border border-white/10 bg-[#0b111a] p-4 sm:p-5 " +
         "shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] " +
         "hover:border-emerald-500/40 hover:shadow-[0_0_22px_#10b98125] " +
         "transition-colors duration-200 " +
@@ -47,22 +47,22 @@ export default function Asavoir() {
       {/* ✅ suppression du max-width pour occuper toute la largeur */}
       <div className="px-6 pb-12">
         <header className="mb-6">
-          <h2 className="text-3xl font-bold text-emerald-300 drop-shadow-[0_0_3px_#10b98125]">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-emerald-300 drop-shadow-[0_0_3px_#10b98125]">
             À savoir
           </h2>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-sm sm:text-base text-gray-400">
             Des conseils concrets pour mieux créer, mieux comprendre les plateformes
             et faire grandir ton contenu sans te perdre.
           </p>
         </header>
 
         {/* Filtres */}
-        <div className="flex gap-2 overflow-x-auto pb-1 mb-5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-5">
           {cats.map(c => (
             <button
               key={c}
               onClick={() => setFilter(c)}
-              className={`shrink-0 rounded-full border px-3 py-1 text-sm transition
+              className={`rounded-full border px-3 py-1 text-sm sm:text-base transition
                 ${
                   filter === c
                     ? "border-emerald-400 text-emerald-300 bg-[#0e1419]"
@@ -75,14 +75,14 @@ export default function Asavoir() {
         </div>
 
         {/* ✅ cartes pleine largeur */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {tips.map((t, i) => (
             <Tile key={i}>
-              <div className="text-[11px] uppercase tracking-wide text-emerald-400/90 mb-1">
+              <div className="text-[11px] sm:text-xs uppercase tracking-wide text-emerald-400/90 mb-1">
                 {t.cat}
               </div>
-              <h3 className="text-white font-semibold transition">{t.title}</h3>
-              <p className="text-sm text-gray-400 mt-2 leading-relaxed">{t.text}</p>
+              <h3 className="text-white font-semibold text-base sm:text-lg leading-snug transition">{t.title}</h3>
+              <p className="text-sm sm:text-base text-gray-400 mt-2 leading-relaxed">{t.text}</p>
             </Tile>
           ))}
         </div>
