@@ -30,6 +30,16 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
     return () => document.removeEventListener("pointerdown", onDown, true);
   }, [open, onCloseMenu]);
 
+  // Lock scroll quand le menu est ouvert
+useEffect(() => {
+  if (open) {
+    const html = document.documentElement;
+    const prev = html.style.overflow;
+    html.style.overflow = "hidden";
+    return () => { html.style.overflow = prev; };
+  }
+}, [open]);
+
   const Item = ({ to, label }) => (
     <NavLink
       to={to}
@@ -55,25 +65,38 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
         </nav>
       </aside>
 
-      {/* Overlay mobile (assombrissement léger, SANS flou) */}
-      {open && (
-  <div
-    className="fixed inset-0 z-40 bg-black/50 md:hidden"
-    style={{
-      WebkitBackdropFilter: "blur(24px)",
-      backdropFilter: "blur(24px)",
-      clipPath: "inset(64px 0 0 256px)" // 256px = largeur sidebar (w-64)
-    }}
-    onMouseDown={() => onCloseMenu?.()}
-    onTouchStart={() => onCloseMenu?.()}
-    aria-hidden
-  />
+     {/* Overlay mobile (assombrissement + flou, sans clipPath) */}
+{open && (
+  <div className="fixed inset-0 z-40 md:hidden" aria-hidden>
+    {/* couche clic (sombre) */}
+    <button
+      type="button"
+      className="absolute right-0 bottom-0 bg-black/60"
+      style={{
+        top: "64px",   // h-16 du header
+        left: "256px", // w-64 de la sidebar
+      }}
+      onMouseDown={() => onCloseMenu?.()}
+      onTouchStart={() => onCloseMenu?.()}
+    />
+    {/* couche blur (visuelle uniquement) */}
+    <div
+      className="absolute right-0 bottom-0 pointer-events-none"
+      style={{
+        top: "64px",
+        left: "256px",
+        WebkitBackdropFilter: "blur(24px)",
+        backdropFilter: "blur(24px)",
+      }}
+    />
+  </div>
 )}
+
 
       {/* Drawer mobile (net, au-dessus de l’overlay) */}
       <aside
         ref={panelRef}
-        className={`fixed inset-y-0 left-0 w-64 bg-[#0C1116] border-r border-white/10 transform transition-transform duration-200 z-50 md:hidden ${
+        className={`fixed inset-y-0 left-0 w-64 bg-[#0C1116] border-r border-white/10 transform transform-gpu transition-transform duration-200 z-50 md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}
