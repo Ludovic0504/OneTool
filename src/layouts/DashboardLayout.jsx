@@ -11,11 +11,7 @@ export default function DashboardLayout() {
       <Header onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
 
       {/* ---- contenu flouté quand le menu est ouvert ---- */}
-      <div
-        className={`flex-1 overflow-hidden transition
-                    will-change-[filter]
-                    ${menuOpen ? "blur-[10px]" : ""}`}
-      >
+      <div className="flex-1 overflow-hidden transition">
         <SidebarShell open={menuOpen} onCloseMenu={() => setMenuOpen(false)}>
           <Outlet />
         </SidebarShell>

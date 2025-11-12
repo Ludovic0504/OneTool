@@ -20,12 +20,10 @@ export default function Header({ onOpenMenu, menuOpen }) {
   return (
   <header
   className={`sticky top-0 z-50 w-full text-gray-100 transition-all duration-300 ${
-    menuOpen
-      ? "backdrop-blur-2xl supports-[backdrop-filter]:bg-[#0C1116]/60 bg-[#0C1116]/70"
-      : "bg-transparent"
+    menuOpen ? "bg-[#0C1116]" : "bg-transparent"
   }`}
-  style={{ WebkitBackdropFilter: menuOpen ? "blur(24px)" : "none" }}
 >
+
 
     {/* barre */}
     <div className="relative pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-16 flex items-center gap-3">

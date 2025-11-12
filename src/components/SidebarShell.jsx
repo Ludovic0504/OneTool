@@ -60,9 +60,9 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
   <div
     className="fixed inset-0 z-40 bg-black/50 md:hidden"
     style={{
-      WebkitBackdropFilter: "blur(24px)", // floute seulement le fond
-      backdropFilter: "blur(24px)",       // floute seulement le fond
-      clipPath: "inset(64px 0 0 240px)"   // 64px = header, 256px = largeur sidebar
+      WebkitBackdropFilter: "blur(24px)",
+      backdropFilter: "blur(24px)",
+      clipPath: "inset(64px 0 0 256px)" // 256px = largeur sidebar (w-64)
     }}
     onMouseDown={() => onCloseMenu?.()}
     onTouchStart={() => onCloseMenu?.()}
@@ -73,7 +73,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
       {/* Drawer mobile (net, au-dessus de l’overlay) */}
       <aside
         ref={panelRef}
-        className={`fixed inset-y-0 left-0 w-64 z-50 transform transition-transform duration-200 md:hidden ${
+        className={`fixed inset-y-0 left-0 w-64 bg-[#0C1116] border-r border-white/10 transform transition-transform duration-200 z-50 md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}
