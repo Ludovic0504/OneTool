@@ -3,9 +3,9 @@ import { NavLink, useLocation } from "react-router-dom";
 
 const links = [
   ["/lab", "Beta Lab", "mt-6"],
-  ["/prompt", "Prompts"],
-  ["/image", "Images"],
-  ["/video", "Vidéos"],
+  ["/prompt", "Prompt"],
+  ["/image", "Image"],
+  ["/video", "Vidéo"],
   ["/a-savoir", "A savoir"],
 ];
 
