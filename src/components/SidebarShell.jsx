@@ -78,7 +78,7 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
       <aside
         ref={panelRef}
-         className={`fixed inset-y-0 left-0 w-64 bg-deep-glass border-r border-white/10 transform transition-transform duration-200 z-50 md:hidden ${
+         className={`fixed inset-y-0 left-0 w-64 bg-transparent transform transition-transform duration-200 z-50 md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}

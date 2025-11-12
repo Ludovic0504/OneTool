@@ -19,10 +19,13 @@ export default function Header({ onOpenMenu, menuOpen }) {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full text-gray-100 transition-all duration-300 ${
-        menuOpen ? "backdrop-blur-md bg-[#0C1116]/80" : "bg-transparent"
-      }`}
-    >
+  className={`sticky top-0 z-50 w-full text-gray-100 transition-all duration-300 ${
+    menuOpen
+      ? "backdrop-blur-lg supports-[backdrop-filter]:bg-[#0C1116]/70 bg-[#0C1116]/80"
+      : "bg-transparent"
+  }`}
+>
+
       {/* barre */}
       <div className="pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-16 flex items-center gap-3">
         {/* burger */}
