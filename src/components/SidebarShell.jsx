@@ -41,24 +41,25 @@ useEffect(() => {
 }, [open]);
 
   const Item = ({ to, label }) => (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `block rounded-md px-3 py-2 text-sm transition
-         ${isActive
-           ? "bg-white/10 text-white"
-           : "text-slate-200 hover:bg-white/5 hover:text-white"}`
-      }
-    >
-      {label}
-    </NavLink>
-  );
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `block rounded-md px-3 py-2.5 text-base md:text-lg transition
+       ${isActive
+         ? "bg-white/10 text-white"
+         : "text-slate-200 hover:bg-white/5 hover:text-white"}`
+    }
+  >
+    {label}
+  </NavLink>
+);
+
 
   return (
     <div className="min-h-screen bg-transparent flex">
       {/* Sidebar desktop */}
       <aside className="relative hidden md:block w-60 bg-transparent text-white">
-        <nav className="flex flex-col gap-3 px-3 pt-4">
+        <nav className="flex flex-col gap-2 px-3 pt-4">
           {links.map(([to, label]) => (
             <Item key={to} to={to} label={label} />
           ))}
