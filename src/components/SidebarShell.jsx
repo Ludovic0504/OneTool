@@ -69,10 +69,12 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
       {/* Overlay + Drawer mobile */}
       {open && (
   <div
-    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-2xl supports-[backdrop-filter]:bg-black/30"
+    className="fixed inset-0 z-40
+               bg-black/50 supports-[backdrop-filter]:bg-black/30
+               backdrop-blur-2xl"
     style={{
-      WebkitBackdropFilter: "blur(24px)", // compatibilité iOS
-      clipPath: "inset(64px 0 0 0)"       // exclut la zone du header (64px = h-16)
+      WebkitBackdropFilter: "blur(24px)",   // iOS
+      clipPath: "inset(64px 0 0 0)"         // 64px = h-16, on exclut le header
     }}
     onMouseDown={() => onCloseMenu?.()}
     onTouchStart={() => onCloseMenu?.()}
@@ -80,23 +82,19 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
   />
 )}
 
+
       <aside
-        ref={panelRef}
-         className={`fixed inset-y-0 left-0 w-64 bg-transparent transform transition-transform duration-200 z-50 md:hidden ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
-        aria-hidden={!open}
-      >
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <span className="font-medium">Navigation</span>
-          <button onClick={() => onCloseMenu?.()} className="text-gray-400 hover:text-white text-xl" aria-label="Fermer le menu">×</button>
-        </div>
-        <nav className="flex flex-col gap-1 px-3 py-3">
-          {links.map(([to, label]) => (
-            <Item key={to} to={to}>{label}</Item>
-          ))}
-        </nav>
-      </aside>
+  ref={panelRef}
+  className={`fixed inset-y-0 left-0 w-64 z-50  /* AU-DESSUS de l’overlay */
+              transform transition-transform duration-200 md:hidden
+              ${open ? "translate-x-0" : "-translate-x-full"}`}
+  aria-hidden={!open}
+>
+  <div className="h-full bg-[#0C1116]/90"> {/* fond SOLIDE, pas de blur */}
+    {/* ... ton contenu de menu ... */}
+  </div>
+</aside>
+
 
       {/* Contenu */}
       <main className="flex-1 min-h-screen">
