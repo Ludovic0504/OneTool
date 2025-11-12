@@ -12,79 +12,64 @@ const links = [
 export default function SidebarShell({ children, open, onCloseMenu }) {
   const panelRef = useRef(null);
   const location = useLocation();
-  const [openedAt, setOpenedAt] = useState(0); // grace period anti-fermeture immédiate
+  const [openedAt, setOpenedAt] = useState(0);
 
-  // Quand on ouvre, on mémorise l’instant d’ouverture
-  useEffect(() => {
-    if (open) setOpenedAt(Date.now());
-  }, [open]);
-
-  // Fermer avec Échap
+  useEffect(() => { if (open) setOpenedAt(Date.now()); }, [open]);
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onCloseMenu?.();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onCloseMenu]);
-
-  // Fermer en cliquant à l’extérieur (mobile friendly)
   useEffect(() => {
     const onPointerDown = (e) => {
       if (!open) return;
-      if (Date.now() - openedAt < 250) return; // fenêtre de grâce
+      if (Date.now() - openedAt < 250) return;
       const panel = panelRef.current;
-      if (!panel) return;
-      const clickedInside = panel.contains(e.target);
-      if (!clickedInside) onCloseMenu?.();
+      if (panel && !panel.contains(e.target)) onCloseMenu?.();
     };
     document.addEventListener("pointerdown", onPointerDown, true);
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
   }, [open, openedAt, onCloseMenu]);
-
-  // Bloquer le scroll du body quand le drawer est ouvert
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = open ? "hidden" : prev || "";
-    return () => {
-      document.body.style.overflow = prev || "";
-    };
+    return () => { document.body.style.overflow = prev || ""; };
   }, [open]);
+  useEffect(() => { if (open) onCloseMenu?.(); }, [location.pathname, location.search]); // ferme sur navigation
 
-  // Fermer lors d’un changement de route
-  useEffect(() => {
-    if (open) onCloseMenu?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, location.search]);
-
-  // Lien qui ferme le drawer
   const Item = ({ to, children }) => (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `rounded px-3 py-2 text-slate-300 hover:bg-white/5 ${
-          isActive ? "bg-accent/10 text-accent font-medium shadow-glow" : ""
-        }`
-      }
-      onClick={() => onCloseMenu?.()}
-    >
-      {children}
-    </NavLink>
-  );
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `rounded-lg px-3 py-2 text-slate-300 transition
+       hover:bg-white/5 hover:text-white
+       ${isActive ? "bg-white/[0.06] text-white ring-1 ring-white/10" : ""}`
+    }
+    onClick={() => onCloseMenu?.()}
+  >
+    {children}
+  </NavLink>
+);
+
 
   return (
     <div className="min-h-screen bg-transparent flex">
-      {/* Sidebar desktop*/}
-      <aside className="hidden md:block w-60 border-r border-white/10 bg-surface text-slate-200">
-        <nav className="flex flex-col gap-1 px-3 pt-4">   {/* 👈 add pt-4 here */}
+      {/* Sidebar desktop immersive */}
+      <aside className="relative hidden md:block w-60 bg-transparent">
+        <nav className="flex flex-col gap-1 px-3 pt-4">
           {links.map(([to, label]) => (
             <Item key={to} to={to}>{label}</Item>
           ))}
         </nav>
+        {/* halo en bas */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none
+                        bg-[radial-gradient(120px_40px_at_50%_120%,color-mix(in_oklab,var(--accent)_30%,transparent),transparent)]" />
       </aside>
 
       {/* Overlay + Drawer mobile */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm md:hidden z-40"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm md:hidden z-40"
           onMouseDown={() => onCloseMenu?.()}
           onTouchStart={() => onCloseMenu?.()}
         />
@@ -92,22 +77,15 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
 
       <aside
         ref={panelRef}
-        className={`fixed inset-y-0 left-0 w-60 bg-surface text-slate-200 border-r border-white/10 transform transition-transform duration-200 z-50 md:hidden ${
+         className={`fixed inset-y-0 left-0 w-64 bg-deep-glass border-r border-white/10 transform transition-transform duration-200 z-50 md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          {/*<span className="font-semibold text-lg">OneTool</span>*/}
-          <button
-            onClick={() => onCloseMenu?.()}
-            className="text-gray-500 hover:text-gray-700 text-xl"
-            aria-label="Fermer le menu"
-          >
-            ×
-          </button>
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
+          <span className="font-medium">Navigation</span>
+          <button onClick={() => onCloseMenu?.()} className="text-gray-400 hover:text-white text-xl" aria-label="Fermer le menu">×</button>
         </div>
-
         <nav className="flex flex-col gap-1 px-3 py-3">
           {links.map(([to, label]) => (
             <Item key={to} to={to}>{label}</Item>
@@ -115,9 +93,9 @@ export default function SidebarShell({ children, open, onCloseMenu }) {
         </nav>
       </aside>
 
-      {/* Contenu principal */}
+      {/* Contenu */}
       <main className="flex-1 min-h-screen">
-        <div className="pt-2 pb-3 pl-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))] sm:px-3 md:px-4">
+        <div className="pt-3 pb-4 pl-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))] sm:px-3 md:px-4">
           {children}
         </div>
       </main>

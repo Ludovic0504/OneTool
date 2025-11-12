@@ -45,7 +45,7 @@ export default function Video() {
       </div>
 
       {/* Grille à la manière de la page Image : gros panneau gauche + panneau “Mes créations” à droite */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[50vh]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[300px]">
   {/* Colonne gauche */}
   {!showHistory ? (
     <>

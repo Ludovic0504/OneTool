@@ -10,83 +10,70 @@ export default function Header({ onOpenMenu }) {
   const [signingOut, setSigningOut] = useState(false);
 
   async function handleLogout() {
-    try { setSigningOut(true); await signOut?.(); }
-    finally { setSigningOut(false); }
+    try { setSigningOut(true); await signOut?.(); } finally { setSigningOut(false); }
   }
 
   return (
-    // full-bleed + collé en haut
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-surface text-gray-100 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-surface/90">
-      <div className="pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-14 flex items-center gap-3">
-        {/* Gauche : burger collé + brand */}
+    <header className="sticky top-0 z-50 w-full text-gray-100 bg-deep-glass border-b border-white/10 shadow-[0_1px_10px_rgba(0,0,0,0.6)]">
+      {/* barre */}
+      <div className="pl-[max(8px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] h-16 flex items-center gap-3">
+        {/* burger */}
         <button
-  type="button"
-  aria-label="Ouvrir le menu"
-  onClick={() => {
-    // Ajoute un léger flou sur l’arrière-plan pendant l’ouverture
-    document.body.classList.add("menu-open");
-    onOpenMenu?.();
-    // Retire le flou quand le menu est fermé (sur clic overlay)
-    setTimeout(() => {
-      const observer = new MutationObserver(() => {
-        if (!document.body.classList.contains("menu-open")) observer.disconnect();
-      });
-      observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    }, 0);
-  }}
-  className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100"
->
-  <Menu size={20} />
-</button>
+          type="button"
+          aria-label="Ouvrir le menu"
+          onClick={() => onOpenMenu?.()}
+          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 hover:bg-white/5 active:bg-white/10"
+        >
+          <Menu size={20} />
+        </button>
 
-        <div to="/dashboard" className="text-base sm:text-lg font-semibold select-none">
-          OneTool
-        </div>
+        {/* marque + petit sigil lumineux */}
+        <Link to="/dashboard" className="group select-none inline-flex items-center gap-2">
+          <span className="relative grid place-items-center h-6 w-6 rounded-full">
+            <span className="absolute inset-0 rounded-full bg-[radial-gradient(closest-side,theme(colors.emerald.400),transparent)] opacity-70 blur-[2px]" />
+            <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_12px_2px_theme(colors.emerald.400)]" />
+          </span>
+          <span className="text-base sm:text-lg font-semibold tracking-wide">OneTool</span>
+        </Link>
 
-        {/* Droite : statut + email + CTA */}
+        {/* droite */}
         <div className="ml-auto flex items-center gap-3">
-          {/* Statut compact */}
           {loading ? (
-            <span className="text-xs text-gray-500">…</span>
+            <span className="text-xs text-gray-400">…</span>
           ) : session ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 text-green-400 px-2 py-0.5 text-xs font-medium">
-              <CircleDot className="w-3 h-3 text-green-500" />
-              Connecté
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 text-emerald-300 px-2 py-0.5 text-xs font-medium">
+              <CircleDot className="w-3 h-3 text-emerald-400" /> Connecté
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-600/30 text-gray-300 px-2 py-0.5 text-xs font-medium">
-              <Circle className="w-3 h-3 text-gray-400" />
-              Invité
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 text-gray-300 px-2 py-0.5 text-xs font-medium">
+              <Circle className="w-3 h-3 text-gray-400" /> Invité
             </span>
           )}
 
-          {/* Email (sm+) */}
           {!loading && email && (
-            <span className="hidden sm:block text-sm text-gray-600">{email}</span>
+            <span className="hidden sm:block text-sm text-gray-400">{email}</span>
           )}
 
-          {/* CTA plus petit */}
           {loading ? null : session ? (
             <button
               type="button"
               onClick={handleLogout}
               disabled={signingOut}
-              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium !bg-red-600 !text-white hover:!bg-red-700 active:!bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-400 shadow-sm"
+              className="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-neon hover:bg-red-700 active:bg-red-800 disabled:opacity-50"
             >
               {signingOut ? "Déconnexion…" : "Se déconnecter"}
             </button>
           ) : (
             <Link
               to="/login"
-              className="inline-flex items-center rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-
+              className="inline-flex items-center rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-black shadow-neon hover:bg-emerald-400 active:bg-emerald-600"
             >
               Connexion
             </Link>
-
           )}
         </div>
       </div>
+
     </header>
   );
 }
