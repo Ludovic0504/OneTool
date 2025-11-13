@@ -76,28 +76,20 @@ export default function Login() {
     }
   };
 
-  // construit une URL de callback qui transporte le "next"
-const googleRedirectTo = useMemo(() => {
-  const base = getRedirectTo();        // => https://onetool.../auth/callback
-  const p = new URL(base);
-  p.searchParams.set("next", next);    // <-- on attache ?next=/prompt par ex.
-  return p.toString();
-}, [next]);
-
-
   const signInWithGoogle = async () => {
   setErrorMsg("");
 
-  // ➜ mémorise le choix “Rester connecté” pour le callback
+  // mémoriser remember et next
   try { localStorage.setItem("onetool_oauth_remember", remember ? "1" : "0"); } catch {}
   try { localStorage.setItem("onetool_oauth_next", next); } catch {}
 
-
   const supabase = getBrowserSupabase({ remember });
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: googleRedirectTo }, // ← pas de ?remember ici
+    options: { redirectTo } // <-- IMPORTANT : PAS de paramètres dynamiques
   });
+
   if (error) setErrorMsg(error.message);
 };
 
