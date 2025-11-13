@@ -10,10 +10,11 @@ export default function AuthCallback() {
       const params = new URLSearchParams(location.search);
 
       // destination finale (si login?next=/truc)
-      const next = (() => {
-        const raw = params.get("next") || "/dashboard";
-        return raw.startsWith("/") ? raw : "/dashboard";
-      })();
+      let next = "/dashboard";
+      try {
+        const v = localStorage.getItem("onetool_oauth_next");
+        if (v && v.startsWith("/")) next = v;
+      } catch {}
 
       // 1) lire remember depuis le storage
       let remember = false;
@@ -35,6 +36,7 @@ export default function AuthCallback() {
         const { data, error } = await supabase.auth.getSession();
         if (!error && data?.session) {
           try { localStorage.removeItem("onetool_oauth_remember"); } catch {}
+          try { localStorage.removeItem("onetool_oauth_next"); } catch {}
           window.location.replace(next);
         } else {
           window.location.replace("/login?error=empty");
@@ -50,6 +52,7 @@ export default function AuthCallback() {
           return;
         }
         try { localStorage.removeItem("onetool_oauth_remember"); } catch {}
+        try { localStorage.removeItem("onetool_oauth_next"); } catch {}
         window.location.replace(next);
         return;
       }
@@ -84,6 +87,7 @@ export default function AuthCallback() {
         }
 
         try { localStorage.removeItem("onetool_oauth_remember"); } catch {}
+        try { localStorage.removeItem("onetool_oauth_next"); } catch {}
         window.location.replace(next);
         return;
       }
