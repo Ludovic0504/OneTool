@@ -6,48 +6,74 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
-  
 
-  const [mode, setMode] = useState("signin"); // "signin" | "signup"
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [loading, setLoading] = useState(false);
-  const [mlLoading, setMlLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [infoMsg, setInfoMsg] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const [showPwd, setShowPwd] = useState(false);       // NEW: toggle afficher/masquer
-  const [remember, setRemember] = useState(true);      // NEW: rester connecté
-
-  const redirectTo = useMemo(() => getRedirectTo(), []);
-
-  const confirmedBanner = useMemo(
-    () => (params.get("confirmed") === "1" ? "Adresse confirmée ✅ Vous pouvez vous connecter." : null),
-    [params]
-  );
-  useEffect(() => {
-    if (confirmedBanner) setInfoMsg(confirmedBanner);
-  }, [confirmedBanner]);
-
+  // -------------------------- next= redirection après login --------------------------
   const next = useMemo(() => {
     const raw = new URLSearchParams(location.search).get("next") || "/dashboard";
     return raw.startsWith("/") ? raw : "/dashboard";
   }, [location.search]);
 
+  // -------------------------- États --------------------------
+  const [mode, setMode] = useState("signin"); // "signin" | "signup"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [mlLoading, setMLLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [infoMsg, setInfoMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [showPwd, setShowPwd] = useState(false);
+  const [remember, setRemember] = useState(true);
+
+  const redirectTo = useMemo(() => getRedirectTo(), []);
+
+  // -------------------------- Banner confirmation email --------------------------
+  const confirmedBanner = useMemo(
+    () => (params.get("confirmed") === "1" ? "Adresse confirmée ✅ Vous pouvez vous connecter." : null),
+    [params]
+  );
+
+  useEffect(() => {
+    if (confirmedBanner) setInfoMsg(confirmedBanner);
+  }, [confirmedBanner]);
+
+  // -------------------------- Google OAuth --------------------------
+  const signInWithGoogle = async () => {
+    setErrorMsg("");
+
+    try {
+      localStorage.setItem("onetool_oauth_remember", remember ? "1" : "0");
+    } catch {}
+
+    try {
+      localStorage.setItem("onetool_oauth_next", next);
+    } catch {}
+
+    const supabase = getBrowserSupabase({ remember });
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+
+    if (error) setErrorMsg(error.message);
+  };
+
+  // -------------------------- Form submit email/password --------------------------
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
     setInfoMsg(null);
 
-    // NEW: crée le client selon la case "Rester connecté"
     const supabase = getBrowserSupabase({ remember });
 
     try {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
+
         if (error) {
           if (error.message?.toLowerCase().includes("email not confirmed")) {
             setErrorMsg("Ton email n’est pas confirmé. Clique sur le lien reçu lors de l’inscription.");
@@ -56,6 +82,7 @@ export default function Login() {
           }
           return;
         }
+
         navigate(next, { replace: true });
       } else {
         const { data, error } = await supabase.auth.signUp({
@@ -63,7 +90,9 @@ export default function Login() {
           password,
           options: { emailRedirectTo: redirectTo },
         });
+
         if (error) return setErrorMsg(error.message);
+
         if (data.user && !data.session) {
           setSent(true);
           setInfoMsg("Compte créé ! Vérifie ta boîte mail et clique sur « S’enregistrer ».");
@@ -76,27 +105,11 @@ export default function Login() {
     }
   };
 
-  const signInWithGoogle = async () => {
-  setErrorMsg("");
-
-  // mémoriser remember et next
-  try { localStorage.setItem("onetool_oauth_remember", remember ? "1" : "0"); } catch {}
-  try { localStorage.setItem("onetool_oauth_next", next); } catch {}
-
-  const supabase = getBrowserSupabase({ remember });
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo } // <-- IMPORTANT : PAS de paramètres dynamiques
-  });
-
-  if (error) setErrorMsg(error.message);
-};
-
-
+  // -------------------------- UI --------------------------
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0C1116] text-white p-4">
       <div className="w-full max-w-sm bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-[0_0_20px_rgba(0,255,255,0.05)]">
+        
         <h1 className="text-xl font-semibold mb-5 text-center">
           {mode === "signin" ? "Connexion" : "Créer un compte OneTool"}
         </h1>
@@ -106,6 +119,7 @@ export default function Login() {
             {errorMsg}
           </div>
         )}
+
         {(sent || infoMsg) && (
           <div className="mb-3 text-sm text-emerald-400 bg-emerald-900/20 border border-emerald-700 rounded-lg p-2">
             {infoMsg || "Vérifie ta boîte mail ✉️"}
@@ -114,9 +128,7 @@ export default function Login() {
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm mb-1 text-gray-300">
-              Email
-            </label>
+            <label htmlFor="email" className="block text-sm mb-1 text-gray-300">Email</label>
             <input
               id="email"
               type="email"
@@ -190,6 +202,7 @@ export default function Login() {
         >
           Continuer avec Google
         </button>
+
       </div>
     </div>
   );
