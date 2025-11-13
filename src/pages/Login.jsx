@@ -55,7 +55,7 @@ export default function Login() {
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: { redirectTo: "https://onetool-three.vercel.app/auth/callback" }
     });
 
     if (error) setErrorMsg(error.message);
