@@ -1,37 +1,97 @@
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { getBrowserSupabase } from "@/lib/supabase/browser-client";
 
 export default function AuthCallback() {
-  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     (async () => {
-      const supabase = getBrowserSupabase();
+      const params = new URLSearchParams(location.search);
 
-      // Essaye d’échanger le code de confirmation contre une session
-      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+      // destination finale (si login?next=/truc)
+      const next = (() => {
+        const raw = params.get("next") || "/dashboard";
+        return raw.startsWith("/") ? raw : "/dashboard";
+      })();
 
-      if (error) {
-        console.error("Erreur d’échange de code :", error);
-        navigate("/login?error=callback", { replace: true });
+      // 1) lire remember depuis le storage
+      let remember = false;
+      try { remember = localStorage.getItem("onetool_oauth_remember") === "1"; } catch {}
+
+      // 2) erreur renvoyée par le provider ?
+      if (params.get("error")) {
+        window.location.replace("/login?error=callback"); // hard reload
         return;
       }
 
-      const params = new URLSearchParams(location.search);
-      const type = params.get("type"); // "signup" | "recovery" | "magiclink" | "oauth" | null
+      const supabase = getBrowserSupabase({ remember });
+      const href = window.location.href;
+      const hasCode  = href.includes("code=");
+      const hasToken = href.includes("access_token=");
 
-      if (type === "signup") {
-        // Pour forcer la confirmation manuelle après inscription
-        await supabase.auth.signOut();
-        navigate("/login?confirmed=1", { replace: true });
-      } else {
-        // Autres cas : lien magique, recovery, OAuth
-        navigate("/dashboard", { replace: true });
+      // 2bis) hash vide (#) → on check la session
+      if (!hasCode && !hasToken && (window.location.hash === "#" || window.location.hash === "")) {
+        const { data, error } = await supabase.auth.getSession();
+        if (!error && data?.session) {
+          try { localStorage.removeItem("onetool_oauth_remember"); } catch {}
+          window.location.replace(next);
+        } else {
+          window.location.replace("/login?error=empty");
+        }
+        return;
       }
+
+      // 3) FLOW IMPLICITE (#access_token)
+      if (hasToken && !hasCode) {
+        const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+        if (error) {
+          window.location.replace("/login?error=callback");
+          return;
+        }
+        try { localStorage.removeItem("onetool_oauth_remember"); } catch {}
+        window.location.replace(next);
+        return;
+      }
+
+      // 4) FLOW PKCE (?code=...)
+      if (hasCode) {
+        let exchangeError = null;
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(href);
+          exchangeError = error ?? null;
+        } catch (e) {
+          exchangeError = e;
+        }
+
+        // fallback si mismatch de stockage (code_verifier / pkce)
+        if (exchangeError) {
+          const msg = String(exchangeError.message || exchangeError || "").toLowerCase();
+          if (msg.includes("code_verifier") || msg.includes("pkce") || msg.includes("verifier")) {
+            try {
+              const alt = getBrowserSupabase({ remember: !remember });
+              const { error } = await alt.auth.exchangeCodeForSession(href);
+              exchangeError = error ?? null;
+            } catch (e2) {
+              exchangeError = e2;
+            }
+          }
+        }
+
+        if (exchangeError) {
+          window.location.replace("/login?error=callback");
+          return;
+        }
+
+        try { localStorage.removeItem("onetool_oauth_remember"); } catch {}
+        window.location.replace(next);
+        return;
+      }
+
+      // 5) aucun code ni token → URL anormale
+      window.location.replace("/login?error=callback");
     })();
-  }, [location.search, navigate]);
+  }, [location.search]);
 
   return <p className="p-6">Validation en cours…</p>;
 }

@@ -6,9 +6,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
-  // ⛔️ (on ne crée plus le client ici pour pouvoir choisir remember à la soumission)
-  // const supabase = getBrowserSupabase();
-  const redirectTo = useMemo(() => getRedirectTo(), []);
+  
 
   const [mode, setMode] = useState("signin"); // "signin" | "signup"
   const [email, setEmail] = useState("");
@@ -22,6 +20,8 @@ export default function Login() {
 
   const [showPwd, setShowPwd] = useState(false);       // NEW: toggle afficher/masquer
   const [remember, setRemember] = useState(true);      // NEW: rester connecté
+
+  const redirectTo = useMemo(() => getRedirectTo(), []);
 
   const confirmedBanner = useMemo(
     () => (params.get("confirmed") === "1" ? "Adresse confirmée ✅ Vous pouvez vous connecter." : null),
@@ -76,98 +76,87 @@ export default function Login() {
     }
   };
 
+  // construit une URL de callback qui transporte le "next"
+const googleRedirectTo = useMemo(() => {
+  const base = getRedirectTo();        // => https://onetool.../auth/callback
+  const p = new URL(base);
+  p.searchParams.set("next", next);    // <-- on attache ?next=/prompt par ex.
+  return p.toString();
+}, [next]);
+
+
   const signInWithGoogle = async () => {
-    setErrorMsg("");
-    // NEW: idem pour OAuth
-    const supabase = getBrowserSupabase({ remember });
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo },
-      });
-      if (error) setErrorMsg(error.message);
-    } catch (err) {
-      setErrorMsg(err?.message || "Erreur inconnue");
-    }
-  };
+  setErrorMsg("");
+
+  // ➜ mémorise le choix “Rester connecté” pour le callback
+  try { localStorage.setItem("onetool_oauth_remember", remember ? "1" : "0"); } catch {}
+
+  const supabase = getBrowserSupabase({ remember });
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: googleRedirectTo }, // ← pas de ?remember ici
+  });
+  if (error) setErrorMsg(error.message);
+};
+
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-sm bg-white border rounded-xl p-6 shadow-sm">
-        <h1 className="text-lg font-semibold mb-4">
-          {mode === "signin" ? "Se connecter" : "Créer un compte"}
+    <div className="min-h-screen flex items-center justify-center bg-[#0C1116] text-white p-4">
+      <div className="w-full max-w-sm bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-[0_0_20px_rgba(0,255,255,0.05)]">
+        <h1 className="text-xl font-semibold mb-5 text-center">
+          {mode === "signin" ? "Connexion" : "Créer un compte OneTool"}
         </h1>
 
         {errorMsg && (
-          <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+          <div className="mb-3 text-sm text-red-400 bg-red-900/30 border border-red-800 rounded-lg p-2">
             {errorMsg}
           </div>
         )}
         {(sent || infoMsg) && (
-          <div className="mb-4 p-3 -border border-green-200 bg-green-50 text-green-800 text-sm flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5 text-green-500"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 8a6 6 0 11-12 0 6 6 0 0112 0zm-7-3a1 1 0 112 0v3a1 1 0 01-.553.894l-2 1A1 1 0 018.5 9.106L10 8.382V5z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <div>
-              <strong>Email envoyé !</strong><br />
-              Vérifie ta boîte mail et clique sur le lien pour activer ton compte ✅
-            </div>
+          <div className="mb-3 text-sm text-emerald-400 bg-emerald-900/20 border border-emerald-700 rounded-lg p-2">
+            {infoMsg || "Vérifie ta boîte mail ✉️"}
           </div>
         )}
 
-
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm mb-1" htmlFor="email">Email</label>
+            <label htmlFor="email" className="block text-sm mb-1 text-gray-300">
+              Email
+            </label>
             <input
               id="email"
               type="email"
-              className="w-full border rounded px-3 py-2 outline-none focus:ring"
+              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              autoComplete="email"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1" htmlFor="password">
+            <label htmlFor="password" className="block text-sm mb-1 text-gray-300">
               {mode === "signin" ? "Mot de passe" : "Choisis un mot de passe"}
             </label>
-
-            {/* NEW: conteneur + bouton Afficher/Masquer (changement minimal autour de l'input) */}
             <div className="relative">
               <input
                 id="password"
-                type={showPwd ? "text" : "password"}           // NEW
-                className="w-full border rounded px-3 py-2 outline-none focus:ring pr-20" // NEW: pr-20 pour laisser la place au bouton
+                type={showPwd ? "text" : "password"}
+                className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2 pr-20 outline-none focus:ring-2 focus:ring-emerald-500"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
               />
               <button
                 type="button"
-                onClick={() => setShowPwd(v => !v)}             // NEW
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-600"
-                aria-label={showPwd ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                onClick={() => setShowPwd(!showPwd)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-white"
               >
                 {showPwd ? "Masquer" : "Afficher"}
               </button>
             </div>
           </div>
 
-          {/* NEW: case Rester connecté */}
-          <label className="inline-flex items-center gap-2 text-sm">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-400">
             <input
               type="checkbox"
               checked={remember}
@@ -179,32 +168,32 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded bg-black text-white py-2 disabled:opacity-60"
+            className="w-full rounded-lg bg-emerald-500 text-black font-semibold py-2 hover:bg-emerald-400 active:bg-emerald-600 transition disabled:opacity-60"
           >
-            {loading ? (mode === "signin" ? "Connexion..." : "Création...") :
-              (mode === "signin" ? "Se connecter" : "S’enregistrer")}
+            {loading ? "Connexion..." : mode === "signin" ? "Se connecter" : "Créer le compte"}
           </button>
-          <p className="mt-2 text-xs text-gray-500 text-center">
+
+          <p className="text-xs text-gray-500 text-center mt-1">
             🔒 Tes données sont protégées — aucune utilisation commerciale.
           </p>
-
         </form>
 
-        <div className="flex justify-between text-sm mt-3">
+        <div className="flex justify-between text-sm mt-4">
           <button
-            className="underline underline-offset-2"
-            onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setErrorMsg(""); setInfoMsg(null); }}
+            className="underline underline-offset-2 text-gray-400 hover:text-white"
+            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           >
             {mode === "signin" ? "Créer un compte" : "J’ai déjà un compte"}
           </button>
         </div>
 
-        <div className="my-4 h-px bg-gray-200" />
+        <div className="my-4 h-px bg-white/10" />
 
         <button
           type="button"
           onClick={signInWithGoogle}
-          className="w-full rounded bg-blue-600 text-white px-3 py-2 font-medium hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          className="w-full rounded-lg bg-gradient-to-r from-sky-500 to-emerald-400 text-black font-medium px-3 py-2 hover:opacity-90 active:opacity-80 transition"
+        >
           Continuer avec Google
         </button>
       </div>
