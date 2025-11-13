@@ -41,25 +41,22 @@ export default function Login() {
 
   // -------------------------- Google OAuth --------------------------
   const signInWithGoogle = async () => {
-    setErrorMsg("");
+  setErrorMsg("");
 
-    try {
-      localStorage.setItem("onetool_oauth_remember", remember ? "1" : "0");
-    } catch {}
+  try { localStorage.setItem("onetool_oauth_remember", remember ? "1" : "0"); } catch {}
+  try { localStorage.setItem("onetool_oauth_next", next); } catch {}
 
-    try {
-      localStorage.setItem("onetool_oauth_next", next);
-    } catch {}
+  const supabase = getBrowserSupabase({ remember });
 
-    const supabase = getBrowserSupabase({ remember });
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: "https://onetool-three.vercel.app/auth/callback",
+    },
+  });
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: "https://onetool-three.vercel.app/auth/callback" }
-    });
-
-    if (error) setErrorMsg(error.message);
-  };
+  if (error) setErrorMsg(error.message);
+};
 
   // -------------------------- Form submit email/password --------------------------
   const onSubmit = async (e) => {
