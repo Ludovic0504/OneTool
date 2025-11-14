@@ -7,12 +7,20 @@ export default function AuthCallback() {
 
   useEffect(() => {
     (async () => {
-      const supabase = getBrowserSupabase();
+      const url = window.location.href;
 
-      console.log("[AuthCallback] URL =", window.location.href);
+      // 1) même logique que dans AuthProvider / Login
+      let remember = false;
+      try {
+        remember = localStorage.getItem("onetool_oauth_remember") === "1";
+      } catch {}
 
-      // ❗ Nouvelle méthode : supabase.auth.exchangeCodeForSession()
-      const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+      const supabase = getBrowserSupabase({ remember });
+
+      console.log("[AuthCallback] URL =", url);
+
+      // 2) on échange le code OAuth contre une session Supabase
+      const { data, error } = await supabase.auth.exchangeCodeForSession(url);
 
       if (error) {
         console.error("[AuthCallback] Exchange error:", error.message);
@@ -22,7 +30,7 @@ export default function AuthCallback() {
 
       console.log("[AuthCallback] Session:", data);
 
-      // Lire la redirection prévue
+      // 3) retrouver vers où on devait renvoyer l'utilisateur
       let next = "/dashboard";
       try {
         const saved = localStorage.getItem("onetool_oauth_next");
