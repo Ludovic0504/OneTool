@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Circle, CircleDot } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
+import { LogOut } from "lucide-react";
+
 
 export default function Header({ onOpenMenu, menuOpen }) {
   const { session, loading, signOut } = useAuth();
@@ -71,11 +73,9 @@ export default function Header({ onOpenMenu, menuOpen }) {
 
           {loading ? null : session ? (
             <button
-              type="button"
-              onClick={handleLogout}
               disabled={signingOut}
-              className="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 active:bg-red-800 disabled:opacity-50"
-            >
+              className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium border border-white/10 text-gray-300 hover:bg-white/5 active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                <LogOut className="w-4 h-4" />
               {signingOut ? "Déconnexion…" : "Se déconnecter"}
             </button>
           ) : (
