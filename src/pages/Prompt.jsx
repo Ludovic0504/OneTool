@@ -43,7 +43,7 @@ export default function PromptAssistant() {
       />
 
       {/* tes onglets */}
-        <div className="inline-flex rounded-lg overflow-hidden border border-white/10 bg-surface/60">
+        <div className="inline-flex rounded-lg overflow-hidden border border-white/10 bg-surface/60 self-end sm:self-auto">
           <TabButton active={tab === "veo3"} onClick={() => setTab("veo3")}>
             VEO3
           </TabButton>
@@ -51,7 +51,7 @@ export default function PromptAssistant() {
             Sora2
           </TabButton>
           <TabButton active={tab === "history"} onClick={() => setTab("history")}>
-            📜 Historique
+            Historique
           </TabButton>
         </div>
       </div>

@@ -43,7 +43,8 @@ export default function Video() {
         />
 
         
-        <div className="inline-flex items-center border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+        <div className="inline-flex items-center border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm self-end sm:self-auto">
+          
   <TabButton active={tab === "veo3"} onClick={() => { setTab("veo3"); setShowHistory(false); }}>
     VEO3
   </TabButton>
