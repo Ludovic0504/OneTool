@@ -33,7 +33,7 @@ export default function PromptAssistant() {
 
   return (
     <div className="w-full pt-3 pb-8 px-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))] text-slate-200 selection:bg-accent/30">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
 
       {/* ⭐️ NOUVEAU TITRE REMPLACE <h1> */}
       <PageTitle

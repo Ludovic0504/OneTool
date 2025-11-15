@@ -35,7 +35,7 @@ export default function Video() {
   return (
     <main className="safe-padded min-h-full">
       {/* Titre + onglets en haut à droite (comme tu aimes) */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
         <PageTitle
           green="Vidéos"
           white="Génération"
