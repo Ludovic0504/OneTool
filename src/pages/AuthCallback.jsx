@@ -1,3 +1,4 @@
+// src/pages/AuthCallback.jsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBrowserSupabase } from "@/lib/supabase/browser-client";
@@ -8,36 +9,50 @@ export default function AuthCallback() {
   useEffect(() => {
     (async () => {
       const url = window.location.href;
+      console.log("[AuthCallback] start, url =", url);
 
-      // 1) même logique que dans AuthProvider / Login
+      // 1) Même logique que le reste de l'app pour le storage (remember)
       let remember = false;
       try {
         remember = localStorage.getItem("onetool_oauth_remember") === "1";
-      } catch {}
+      } catch (e) {
+        console.warn("[AuthCallback] cannot read remember flag:", e);
+      }
 
       const supabase = getBrowserSupabase({ remember });
 
-      console.log("[AuthCallback] URL =", url);
-
-      // 2) on échange le code OAuth contre une session Supabase
-      const { data, error } = await supabase.auth.exchangeCodeForSession(url);
-
-      if (error) {
-        console.error("[AuthCallback] Exchange error:", error.message);
-        navigate("/login?error=callback", { replace: true });
-        return;
-      }
-
-      console.log("[AuthCallback] Session:", data);
-
-      // 3) retrouver vers où on devait renvoyer l'utilisateur
-      let next = "/dashboard";
       try {
-        const saved = localStorage.getItem("onetool_oauth_next");
-        if (saved && saved.startsWith("/")) next = saved;
-      } catch {}
+        // 2) On tente l’échange code ↔ session
+        const { data, error } = await supabase.auth.exchangeCodeForSession(url);
+        console.log("[AuthCallback] exchange result:", { data, error });
 
-      navigate(next, { replace: true });
+        // 3) On vérifie s'il y a une session active, même si 'error' est défini
+        const { data: sessionData } = await supabase.auth.getSession();
+        const hasSession = !!(sessionData?.session || data?.session);
+
+        if (!hasSession) {
+          console.error("[AuthCallback] no session after exchange, redirecting to /login");
+          navigate("/login?error=callback", { replace: true });
+          return;
+        }
+
+        // 4) Retrouver la route de redirection (next)
+        let next = "/dashboard";
+        try {
+          const savedNext = localStorage.getItem("onetool_oauth_next");
+          if (savedNext && savedNext.startsWith("/")) {
+            next = savedNext;
+          }
+        } catch (e) {
+          console.warn("[AuthCallback] cannot read next from storage:", e);
+        }
+
+        console.log("[AuthCallback] success, redirecting to", next);
+        navigate(next, { replace: true });
+      } catch (err) {
+        console.error("[AuthCallback] unexpected error:", err);
+        navigate("/login?error=callback", { replace: true });
+      }
     })();
   }, [navigate]);
 
