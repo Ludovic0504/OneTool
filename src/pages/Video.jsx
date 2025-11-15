@@ -1,5 +1,9 @@
 // src/pages/Video.jsx
 import { useMemo, useState, useRef, useEffect } from "react";
+import PageTitle from "../components/PageTitle";
+
+/* -------------------- Options -------------------- */
+
 const FORMAT_OPTIONS = ["16:9", "9:16", "1:1", "21:9", "4:5"];
 const DURATION_OPTIONS = {
   veo3: ["8s"],
@@ -32,7 +36,13 @@ export default function Video() {
     <main className="safe-padded min-h-full">
       {/* Titre + onglets en haut à droite (comme tu aimes) */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-2xl font-bold">Vidéo Generation</h2>
+        <PageTitle
+          green="Vidéos"
+          white="Génération"
+          subtitle="Crée une vidéo VEO3 ou Sora2."
+        />
+
+        
         <div className="inline-flex items-center border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
   <TabButton active={tab === "veo3"} onClick={() => { setTab("veo3"); setShowHistory(false); }}>
     VEO3

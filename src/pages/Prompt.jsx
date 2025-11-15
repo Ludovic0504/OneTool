@@ -2,6 +2,7 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { saveHistory, listHistory } from "@/lib/supabase/history";
 import { useAuth } from "@/context/AuthProvider";
+import PageTitle from "../components/PageTitle";
 
 /* ----------------- utils historique (localStorage) ----------------- */
 const LS_KEY = "history_v2";
@@ -33,7 +34,15 @@ export default function PromptAssistant() {
   return (
     <div className="w-full pt-3 pb-8 px-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))] text-slate-200 selection:bg-accent/30">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">Prompt Assistant</h1>
+
+      {/* ⭐️ NOUVEAU TITRE REMPLACE <h1> */}
+      <PageTitle
+        green="Prompts"
+        white="Assistant"
+        subtitle="Décris ton idée en 2–3 lignes et génère un prompt VEO3 complet."
+      />
+
+      {/* tes onglets */}
         <div className="inline-flex rounded-lg overflow-hidden border border-white/10 bg-surface/60">
           <TabButton active={tab === "veo3"} onClick={() => setTab("veo3")}>
             VEO3

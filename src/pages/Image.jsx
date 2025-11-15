@@ -1,6 +1,7 @@
 // src/pages/Image.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthProvider";
+import PageTitle from "../components/PageTitle";
 
 /* ---------- Crédit local (MVP) ---------- */
 const DEFAULT_CREDITS = 20;         // gratuités initiales
@@ -178,7 +179,13 @@ export default function ImagePage() {
   return (
     <div className="p-4 md:p-6 max-w-[1400px] mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">Image Generation</h1>
+        <PageTitle
+          green="Images"
+          white="Génération"
+          subtitle="Décris l’image que tu veux créer."
+        />
+
+
 
         {/* Crédit badge */}
         <div className="inline-flex items-center gap-2 text-sm">

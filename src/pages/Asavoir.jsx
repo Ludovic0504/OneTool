@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import PageTitle from "../components/PageTitle";
 
 const TIPS = [
   { cat: "Création vidéo", title: "1. Ta vidéo doit accrocher dès les 3 premières secondes",
@@ -42,18 +43,17 @@ export default function Asavoir() {
   return (
     <main className="min-h-full relative text-gray-100">
       {/* fond global bleu identique au Lab */}
-      <div className="absolute inset-0 -z-10 bg-[#0a0f14]" />
+      <div className="absolute inset-0 -z-10 bg-[#0C1116]" />
 
       {/* ✅ suppression du max-width pour occuper toute la largeur */}
       <div className="px-6 pb-12">
         <header className="mb-6">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-emerald-300 drop-shadow-[0_0_3px_#10b98125]">
-            À savoir
-          </h2>
-          <p className="mt-2 text-sm sm:text-base text-gray-400">
-            Des conseils concrets pour mieux créer, mieux comprendre les plateformes
-            et faire grandir ton contenu sans te perdre.
-          </p>
+          <PageTitle
+            green="Notes"
+            white="À savoir"
+            subtitle="Des conseils concrets pour mieux créer, mieux comprendre les plateformes
+            et faire grandir ton contenu sans te perdre."
+        />
         </header>
 
         {/* Filtres */}
